@@ -5,6 +5,22 @@
 -- Supabaseの「SQL Editor」で「New Query」を開き、このファイルの内容をすべて貼り付けて「Run」を押してください。
 -- =============================================================================
 
+-- 既存のテーブルがある場合はクリーンアップ（初期化）
+DROP TABLE IF EXISTS public.audit_logs CASCADE;
+DROP TABLE IF EXISTS public.notifications CASCADE;
+DROP TABLE IF EXISTS public.mandatory_courses CASCADE;
+DROP TABLE IF EXISTS public.lesson_progress CASCADE;
+DROP TABLE IF EXISTS public.enrollments CASCADE;
+DROP TABLE IF EXISTS public.learning_path_courses CASCADE;
+DROP TABLE IF EXISTS public.learning_paths CASCADE;
+DROP TABLE IF EXISTS public.course_visibility CASCADE;
+DROP TABLE IF EXISTS public.lessons CASCADE;
+DROP TABLE IF EXISTS public.courses CASCADE;
+DROP TABLE IF EXISTS public.categories CASCADE;
+DROP TABLE IF EXISTS public.users CASCADE;
+DROP TABLE IF EXISTS public.departments CASCADE;
+DROP TABLE IF EXISTS public.organizations CASCADE;
+
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
