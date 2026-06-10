@@ -11,9 +11,20 @@ export async function GET() {
       .select('id')
       .limit(1)
 
+    const isMock = 
+      !process.env.NEXT_PUBLIC_SUPABASE_URL || 
+      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-supabase-project') ||
+      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'your-supabase-anon-key'
+
     if (error) throw error
 
-    return new Response(JSON.stringify({ status: 'ok', database: 'connected' }), {
+    return new Response(JSON.stringify({ 
+      status: 'ok', 
+      database: 'connected', 
+      mode: isMock ? 'mock' : 'production',
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL || 'not-set'
+    }), {
       status: 200,
       headers: { 
         'Content-Type': 'application/json',
@@ -22,7 +33,11 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Health check failed:', error)
-    return new Response(JSON.stringify({ status: 'error', message: error.message }), {
+    return new Response(JSON.stringify({ 
+      status: 'error', 
+      message: error.message,
+      mode: (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) ? 'mock' : 'production'
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })
