@@ -1,0 +1,85 @@
+import { createClient } from '@/utils/supabase/server'
+import LearnerRoadmapsClientPage from './LearnerRoadmapsClientPage'
+
+export const dynamic = 'force-dynamic'
+
+export default async function LearnerRoadmapsPage() {
+  const supabase = await createClient()
+
+  let roadmaps = []
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single()
+
+      if (profile) {
+        const orgId = profile.organization_id
+
+        // 1. Fetch user's enrollments to map progress
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('course_id, progress_percent, status')
+          .eq('user_id', user.id)
+        
+        const progressMap = new Map(enrollments?.map(e => [e.course_id, e.progress_percent]) || [])
+        const completedCourseIds = enrollments?.filter(e => e.status === 'completed').map(e => e.course_id) || []
+
+        // 2. Fetch active roadmaps visible to user (own organization or HQ)
+        const { data: lpData } = await supabase
+          .from('learning_paths')
+          .select('*, learning_path_courses(*, courses(id, title, description, category_id, categories(name))))')
+          .eq('is_active', true)
+          .or(`organization_id.eq.${orgId},organization_id.is.null`)
+
+        // 3. Process each roadmap and calculate step states (Completed, Next Active, Locked)
+        roadmaps = (lpData || []).map(lp => {
+          // Sort course steps by sort_order
+          const sortedLpc = (lp.learning_path_courses || []).sort((a, b) => a.sort_order - b.sort_order)
+          
+          let activeFound = false
+          const courses = sortedLpc.map((lpc, index) => {
+            const course = lpc.courses
+            if (!course) return null
+
+            const isCourseCompleted = completedCourseIds.includes(course.id)
+            let status = 'locked'
+
+            if (isCourseCompleted) {
+              status = 'completed'
+            } else if (!activeFound) {
+              status = 'active' // First uncompleted step is the "Next Action"
+              activeFound = true
+            } else {
+              status = 'locked'
+            }
+
+            return {
+              ...course,
+              roadmap_status: status,
+              progress_percent: progressMap.get(course.id) || 0
+            }
+          }).filter(Boolean)
+
+          return {
+            ...lp,
+            courses
+          }
+        }).filter(lp => lp.courses.length > 0) // Hide empty paths
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch learner roadmaps:', error)
+  }
+
+  return (
+    <LearnerRoadmapsClientPage
+      roadmaps={roadmaps}
+    />
+  )
+}

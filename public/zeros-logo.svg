@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 520" width="100%" height="100%">
+  <defs>
+    <style>
+      .logo-text-top {
+        font-family: 'Montserrat', 'Inter', sans-serif;
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        fill: #0f2540;
+      }
+      .logo-text-ja {
+        font-family: 'Hiragino Mincho ProN', 'MS Mincho', serif;
+        font-size: 38px;
+        font-weight: 300;
+        letter-spacing: 0.5em;
+        fill: #0f2540;
+      }
+      .logo-text-zeros {
+        font-family: 'Times New Roman', Times, 'Georgia', serif;
+        font-size: 32px;
+        font-weight: 300;
+        letter-spacing: 0.4em;
+        fill: #0f2540;
+      }
+      .logo-text-desc {
+        font-family: 'Montserrat', 'Inter', sans-serif;
+        font-size: 9.5px;
+        letter-spacing: 0.18em;
+        fill: #0f2540;
+      }
+      .logo-text-method {
+        font-family: 'Montserrat', 'Inter', sans-serif;
+        font-size: 9.5px;
+        font-weight: bold;
+        letter-spacing: 0.2em;
+        fill: #c5a059;
+      }
+      .line-accent {
+        stroke: #c5a059;
+        stroke-width: 1.5;
+      }
+      .line-dot {
+        stroke: rgba(15, 37, 64, 0.15);
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-dasharray: 0 8;
+      }
+    </style>
+  </defs>
+
+  <g id="logo-mark">
+    <!-- 縦のドット点線 (上半分と下半分に分割して、中央のゴールドドットの周りを綺麗にする) -->
+    <line x1="250" y1="65" x2="250" y2="145" class="line-dot" />
+    <line x1="250" y1="175" x2="250" y2="255" class="line-dot" />
+
+    <!-- 左の弧 (ゴールド) -->
+    <path d="M 241.3 60.4 A 100 100 0 0 0 232.6 258.5 A 96 96 0 0 1 247.0 65.0 Z" fill="#c5a059" />
+    
+    <!-- 右の弧 (深い紺) -->
+    <path d="M 258.7 60.4 A 100 100 0 0 1 267.4 258.5 A 96 96 0 0 0 253.0 65.0 Z" fill="#0f2540" />
+
+    <!-- 中心ゴールドドット -->
+    <circle cx="250" cy="160" r="7" fill="#c5a059" />
+  </g>
+
+  <g id="logo-text" text-anchor="middle">
+    <text x="252" y="310" class="logo-text-top">— AWAI LINK / CORE BRIDGE —</text>
+    <text x="260" y="365" class="logo-text-ja">あわい屋</text>
+    <line x1="210" y1="390" x2="290" y2="390" class="line-accent" />
+    <text x="256" y="430" class="logo-text-zeros">ZEROS</text>
+    <text x="251" y="470" class="logo-text-desc">MAPPING HIDDEN COMPLEXITY INTO CLARITY.</text>
+    <text x="251" y="495" class="logo-text-method">THE AWAI METHOD.</text>
+  </g>
+</svg>

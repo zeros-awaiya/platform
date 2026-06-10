@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Color Theme Definitions */
+
+/* 1. Deep Ocean (Default / Blue-Indigo) */
+:root, [data-theme="ocean"] {
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --sidebar-border: #1e293b;
+  --accent-badge-bg: rgba(99, 102, 241, 0.1);
+  --accent-badge-color: #818cf8;
+  --accent-badge-border: rgba(99, 102, 241, 0.15);
+  --theme-glow: rgba(99, 102, 241, 0.2);
+}
+
+/* 2. Forest Emerald (Green-Cyan) */
+[data-theme="forest"] {
+  --primary-color: #10b981;
+  --primary-hover: #059669;
+  --primary-gradient: linear-gradient(135deg, #10b981, #06b6d4);
+  --sidebar-border: #064e3b;
+  --accent-badge-bg: rgba(16, 185, 129, 0.15);
+  --accent-badge-color: #34d399;
+  --accent-badge-border: rgba(16, 185, 129, 0.2);
+  --theme-glow: rgba(16, 185, 129, 0.2);
+}
+
+/* 3. Royal Amethyst (Purple-Pink) */
+[data-theme="amethyst"] {
+  --primary-color: #8b5cf6;
+  --primary-hover: #7c3aed;
+  --primary-gradient: linear-gradient(135deg, #8b5cf6, #d946ef);
+  --sidebar-border: #3b0764;
+  --accent-badge-bg: rgba(139, 92, 246, 0.15);
+  --accent-badge-color: #c084fc;
+  --accent-badge-border: rgba(139, 92, 246, 0.2);
+  --theme-glow: rgba(139, 92, 246, 0.2);
+}

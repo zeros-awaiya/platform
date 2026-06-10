@@ -1,0 +1,787 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #09090b;
+  color: #fafafa;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  background-color: #09090b;
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+.logoArea {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.logoImg {
+  width: 130px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(197, 160, 89, 0.08));
+  transition: transform 0.3s ease;
+}
+
+.logoImg:hover {
+  transform: scale(1.02);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #a1a1aa;
+  text-decoration: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.navLink:hover {
+  color: #f4f4f5;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.activeNavLink {
+  color: #ffffff;
+  background-color: var(--accent-badge-bg);
+  border: 1px solid var(--accent-badge-border);
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #fca5a5;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s ease;
+  margin-top: auto;
+}
+
+.logoutBtn:hover {
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+/* Main Content Area */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.header {
+  height: 70px;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.titleGroup h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Course Cards and Grid */
+.courseGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.courseCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+
+.courseCard:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary-color);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.categoryTag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-badge-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.courseTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+.courseDesc {
+  font-size: 0.85rem;
+  color: #a1a1aa;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.6rem;
+}
+
+/* Progress bar inside card */
+.progressWrapper {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+}
+
+.progressBarContainer {
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+/* Tabs */
+.tabsContainer {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #a1a1aa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.activeTab {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border-color: var(--primary-color);
+}
+
+/* Detailed Course Layout (LEARNER-03) */
+.courseDetailHeader {
+  background: radial-gradient(circle at top right, var(--theme-glow), rgba(0, 0, 0, 0.3));
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 2rem;
+}
+
+.lessonList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lessonRow {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.lessonRow:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.lessonTitle {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.lessonMeta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: #a1a1aa;
+}
+
+.lessonCompleted {
+  border-left: 4px solid #10b981;
+}
+
+/* Mandatory badge */
+.mandatoryBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* Material viewer custom styling */
+.videoContainer {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  height: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 2rem;
+  background-color: #000;
+}
+
+.videoContainer iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.articleBody {
+  line-height: 1.8;
+  font-size: 1.05rem;
+  color: #d4d4d8;
+  padding: 1rem 0.5rem;
+}
+
+.articleBody h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.articleBody h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.5rem;
+}
+
+.articleBody h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.articleBody p {
+  margin-bottom: 1.25rem;
+}
+
+.linkCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.linkIcon {
+  font-size: 3rem;
+}
+
+.linkCard h4 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.linkCard p {
+  color: #a1a1aa;
+  font-size: 0.9rem;
+  max-width: 460px;
+  line-height: 1.6;
+}
+
+/* Visual Roadmap Skill Tree Styles */
+.roadmapContainer {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.roadmapPath {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+}
+
+.roadmapStep {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 2rem;
+}
+
+/* Vertical connector lines */
+.roadmapLine {
+  position: absolute;
+  left: 24px; /* Centered under the 50px node */
+  top: 50px;
+  bottom: -3.5rem; /* Reaches down to next node */
+  width: 3px;
+  background-color: rgba(255, 255, 255, 0.06);
+  z-index: 0;
+}
+
+.roadmapLineActive {
+  background: linear-gradient(180deg, var(--primary-color), var(--theme-glow));
+}
+
+.roadmapLineCompleted {
+  background: #10b981;
+}
+
+/* Circular step nodes */
+.roadmapNode {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #18181b;
+  border: 2px solid #3f3f46;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  z-index: 1;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  position: relative;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.roadmapNodeCompleted {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #10b981;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.roadmapNodeActive {
+  background-color: var(--accent-badge-bg);
+  border-color: var(--primary-color);
+  color: var(--accent-badge-color);
+  box-shadow: 0 0 20px var(--theme-glow);
+}
+
+/* Pulsing ring animation for the Next Action node */
+.roadmapNodeActive::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-color);
+  animation: roadmapPulse 2s infinite;
+  opacity: 0;
+}
+
+@keyframes roadmapPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+.roadmapNodeLocked {
+  background-color: #09090b;
+  border-color: #27272a;
+  color: #3f3f46;
+}
+
+/* Roadmap Course Card */
+.roadmapCard {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.25s ease;
+  z-index: 1;
+}
+
+.roadmapCard:hover {
+  transform: translateX(6px);
+  border-color: rgba(99, 102, 241, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.roadmapCardActive {
+  background: linear-gradient(135deg, var(--accent-badge-bg), rgba(255, 255, 255, 0.01));
+  border-color: var(--accent-badge-border);
+  box-shadow: 0 4px 15px var(--theme-glow);
+}
+
+.roadmapCardActive:hover {
+  border-color: var(--primary-color);
+}
+
+.recommendedCourseCard {
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 1.5rem !important;
+  text-decoration: none;
+  display: flex !important;
+}
+
+.roadmapCardLocked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none; /* Disable click on locked steps */
+  border-color: rgba(255, 255, 255, 0.02);
+}
+
+.roadmapCardLocked:hover {
+  transform: none;
+}
+
+.dashboardSplit {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .dashboardSplit {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+  }
+}
+
+
+/* Mobile Top Header (hidden on PC) */
+.mobileHeader {
+  display: none;
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  /* Hide PC Header and show Mobile Header */
+  .header {
+    display: none !important;
+  }
+
+  .mobileHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    padding: 0 1.25rem;
+    background-color: rgba(9, 9, 11, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #1e293b;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  .menuBtn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobileLogoArea {
+    display: flex;
+    align-items: center;
+  }
+
+  .mobileLogoImg {
+    width: 90px;
+    height: auto;
+  }
+
+  /* Overlay */
+  .sidebarOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 49;
+    animation: fadeInOverlay 0.2s ease-out;
+  }
+
+  @keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Sidebar drawer styling */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: rgba(9, 9, 11, 0.92);
+    backdrop-filter: blur(20px);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.6);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .sidebarHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    width: 100%;
+  }
+
+  .closeBtn {
+    background: none;
+    border: none;
+    color: #a1a1aa;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .closeBtn:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .logoArea {
+    margin-bottom: 0;
+    justify-content: flex-start;
+  }
+
+  .logoImg {
+    width: 100px;
+  }
+
+  .nav {
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    width: 100%;
+  }
+
+  .navLink {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .logoutBtn {
+    margin-top: auto;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
+  }
+
+  .content {
+    padding: 1.25rem;
+  }
+
+  /* Modal scaling for mobile */
+  .modal {
+    max-width: 90%;
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .courseGrid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+
+  .courseDetailHeader {
+    grid-template-columns: 1fr !important;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .videoContainer {
+    margin-bottom: 1rem;
+  }
+
+  .roadmapStep {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .roadmapLine {
+    left: 24px;
+    top: 50px;
+    bottom: -1rem;
+    width: 3px;
+  }
+
+  .roadmapCard {
+    width: 100%;
+  }
+
+  .recommendedCourseCard {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem;
+    padding: 1.25rem !important;
+  }
+
+  .recommendedCourseCard button,
+  .recommendedCourseCard a {
+    width: 100% !important;
+    text-align: center;
+  }
+}
+
+.themeDot {
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.themeDot:hover {
+  transform: scale(1.2) !important;
+}
+
+.themeDotActive {
+  transform: scale(1.2) !important;
+  box-shadow: 0 0 0 2px #09090b, 0 0 0 4px var(--primary-color) !important;
+}
+
+
