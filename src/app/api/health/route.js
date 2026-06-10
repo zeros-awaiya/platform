@@ -11,11 +11,14 @@ export async function GET() {
       .select('id')
       .limit(1)
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+
     const isMock = 
-      !process.env.NEXT_PUBLIC_SUPABASE_URL || 
-      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-supabase-project') ||
-      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'your-supabase-anon-key'
+      !supabaseUrl || 
+      supabaseUrl.includes('your-supabase-project') ||
+      !supabaseAnonKey || 
+      supabaseAnonKey === 'your-supabase-anon-key'
 
     if (error) throw error
 
@@ -23,7 +26,7 @@ export async function GET() {
       status: 'ok', 
       database: 'connected', 
       mode: isMock ? 'mock' : 'production',
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL || 'not-set'
+      url: supabaseUrl || 'not-set'
     }), {
       status: 200,
       headers: { 

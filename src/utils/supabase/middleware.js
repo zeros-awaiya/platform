@@ -6,12 +6,15 @@ export async function updateSession(request) {
     request,
   })
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+
   // Check if Supabase keys are not set or left as defaults (Mock Mode)
   const isMockMode = 
-    !process.env.NEXT_PUBLIC_SUPABASE_URL || 
-    process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-supabase-project') ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'your-supabase-anon-key'
+    !supabaseUrl || 
+    supabaseUrl.includes('your-supabase-project') ||
+    !supabaseAnonKey || 
+    supabaseAnonKey === 'your-supabase-anon-key'
 
   let user = null
 
@@ -26,8 +29,8 @@ export async function updateSession(request) {
     }
   } else {
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      supabaseUrl,
+      supabaseAnonKey,
       {
         cookies: {
           getAll() {
