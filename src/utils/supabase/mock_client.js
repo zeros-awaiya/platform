@@ -61,6 +61,11 @@ class QueryBuilder {
     return this
   }
 
+  limit(num) {
+    // Mock limit (no-op)
+    return this
+  }
+
   eq(col, val) {
     this.filters.push({ type: 'eq', col, val })
     return this
