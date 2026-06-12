@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>あわい屋ZEROS - システム管理者 (SYSTEM_ADMIN) 向け運用マニュアル</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0914;
+            --card-bg: rgba(26, 22, 46, 0.75);
+            --border-color: rgba(217, 119, 6, 0.3);
+            --primary-color: #7c3aed;
+            --primary-glow: rgba(124, 58, 237, 0.4);
+            --secondary-color: #d97706;
+            --text-color: #e2e0ed;
+            --text-muted: #a7a2c4;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.8;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .logo-container {
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .logo-mark {
+            width: 80px;
+            height: 80px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            background: radial-gradient(circle, rgba(124,58,237,0.2) 0%, rgba(11,9,20,0) 70%);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .logo-dot {
+            width: 12px;
+            height: 12px;
+            background-color: var(--secondary-color);
+            border-radius: 50%;
+        }
+
+        h1 {
+            font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #e2e0ed 30%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 15px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #ffffff;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            margin-bottom: 20px;
+        }
+
+        ol, ul {
+            padding-left: 20px;
+            margin-bottom: 25px;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        li strong {
+            color: #ffffff;
+        }
+
+        code {
+            background-color: rgba(124, 58, 237, 0.2);
+            color: #d8b4fe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+
+        pre {
+            background-color: rgba(15, 10, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            overflow-x: auto;
+            margin-bottom: 25px;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: #e2e0ed;
+            padding: 0;
+            border-radius: 0;
+            font-family: Consolas, monospace;
+        }
+
+        .image-wrapper {
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .image-wrapper img {
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .image-wrapper img:hover {
+            transform: scale(1.02);
+        }
+
+        .caption {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .warning-box {
+            background: rgba(185, 28, 28, 0.15);
+            border-left: 4px solid #b91c1c;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+        }
+
+        .warning-box strong {
+            color: #f87171;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="logo-mark">
+                    <div class="logo-dot"></div>
+                </div>
+            </div>
+            <h1>あわい屋ZEROS</h1>
+            <div class="subtitle">システム管理者 (SYSTEM_ADMIN) 向け運用マニュアル</div>
+        </header>
+
+        <div class="card">
+            <h2>1. システム管理者の権限範囲</h2>
+            <p>システム本部の管理者用アカウントです。全テナント（組織）の登録・監査ログの監視・共通コンテンツ（グローバルコース）の発行・システム初期セットアップを管理します。</p>
+
+            <div class="image-wrapper">
+                <img src="/images/sys_dashboard.png" alt="システム管理者ダッシュボード">
+                <span class="caption">図1.1：システム管理者ダッシュボード（全組織の接続・稼働ログを一元管理します）</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>2. テナント（導入組織）の新規登録</h2>
+            <p>あわい屋ZEROSプラットフォームを利用する新しい企業・病院等の登録を行います。</p>
+            
+            <ol>
+                <li>管理ダッシュボードから左側メニューの<strong>「組織管理」</strong>を開きます。</li>
+                <li><strong>「新規組織の追加」</strong>ボタンをクリックします。</li>
+                <li>組織の「名称（例: あわい屋リハビリ病院）」を入力し、保存します。</li>
+                <li>必要に応じて、その組織で利用する「部門（看護部、リハビリテーション科、事務部等）」も紐付け登録します。</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h2>3. 共通基礎研修（グローバルコンテンツ）の管理</h2>
+            <p>複数の組織に対して共通で提供する教育コース（例：コンプライアンス研修、医療基礎安全対策など）を作成します。</p>
+
+            <ol>
+                <li>管理者メニューから<strong>「グローバルコース管理」</strong>を開きます。</li>
+                <li>組織ID（テナント）を「グローバル（なし）」にした状態で、新規コースとレッスンコンテンツを構築します。</li>
+                <li>これを有効化すると、登録されているすべての導入組織の「研修一覧」にデフォルトで自動配信されます。</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h2>4. セキュリティ監視（監査ログ）</h2>
+            <p>セキュリティとコンプライアンス要件を満たすため、各組織で行われた重要なアクションをログとしてリアルタイムに記録・追跡します。</p>
+            
+            <ul>
+                <li>メニューの<strong>「監査ログ」</strong>を選択します。</li>
+                <li>「操作日時」「実行ユーザー」「所属組織」「アクション種類（ユーザー削除、コース追加、ログイン等）」「対象データのID」が時系列で一覧表示されます。</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>5. 本番環境での最初の管理者アカウント作成手順</h2>
+            <p>プラットフォームをデプロイした直後、最初にシステムへログインするための「マスターシステム管理者」の登録手順です。</p>
+
+            <div class="warning-box">
+                <strong>※注意※</strong>：安全上のため、Vercelのフロントエンド画面から直接「システム管理者」を自由に追加することはできない仕組みになっています。必ず以下の手順を踏む必要があります。
+            </div>
+
+            <ol>
+                <li><strong>Supabase Authへのユーザー登録</strong>
+                    <ul>
+                        <li>Supabaseダッシュボードを開き、<strong>「Authentication」</strong> ➔ <strong>「Users」</strong> を選択します。</li>
+                        <li><strong>「Add User」</strong> ➔ <strong>「Create User」</strong>をクリックし、メールアドレスとパスワードを設定して保存します。</li>
+                        <li>作成されたユーザーの<strong>「User ID (UUID)」</strong>をコピーします。</li>
+                    </ul>
+                </li>
+                <li><strong>プロファイルテーブルへの紐付けSQL実行</strong>
+                    <ul>
+                        <li>Supabaseの<strong>「SQL Editor」</strong>を開き、コピーしたUUIDを埋め込んで以下のSQLを実行（Run）します。</li>
+                    </ul>
+                    <pre><code>-- 最初のシステム管理者の登録SQL
+INSERT INTO public.users (id, organization_id, name, email, role, is_active)
+VALUES (
+  '【コピーしたUUID】', 
+  '77777777-7777-7777-7777-777777777777', -- デモ用組織（あわい屋総合病院）
+  'システム総括管理者', 
+  'zeros.js2025@gmail.com', -- あなたの登録メールアドレス
+  'SYSTEM_ADMIN', 
+  true
+);</code></pre>
+                </li>
+                <li>実行が完了すると、そのメールアドレスとパスワードでシステム管理者としてアプリにログイン可能になります。</li>
+            </ol>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 あわい屋ZEROS. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

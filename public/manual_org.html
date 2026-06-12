@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>あわい屋ZEROS - 組織管理者 (ORG_ADMIN) 向け運用マニュアル</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0914;
+            --card-bg: rgba(26, 22, 46, 0.75);
+            --border-color: rgba(217, 119, 6, 0.3);
+            --primary-color: #7c3aed;
+            --primary-glow: rgba(124, 58, 237, 0.4);
+            --secondary-color: #d97706;
+            --text-color: #e2e0ed;
+            --text-muted: #a7a2c4;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.8;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .logo-container {
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .logo-mark {
+            width: 80px;
+            height: 80px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            background: radial-gradient(circle, rgba(124,58,237,0.2) 0%, rgba(11,9,20,0) 70%);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .logo-dot {
+            width: 12px;
+            height: 12px;
+            background-color: var(--secondary-color);
+            border-radius: 50%;
+        }
+
+        h1 {
+            font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #e2e0ed 30%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 15px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #ffffff;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            margin-bottom: 20px;
+        }
+
+        ol, ul {
+            padding-left: 20px;
+            margin-bottom: 25px;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        li strong {
+            color: #ffffff;
+        }
+
+        code {
+            background-color: rgba(124, 58, 237, 0.2);
+            color: #d8b4fe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+
+        .image-wrapper {
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .image-wrapper img {
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .image-wrapper img:hover {
+            transform: scale(1.02);
+        }
+
+        .caption {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, var(--primary-color), #4c1d95);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="logo-mark">
+                    <div class="logo-dot"></div>
+                </div>
+            </div>
+            <h1>あわい屋ZEROS</h1>
+            <div class="subtitle">組織管理者 (ORG_ADMIN) 向け運用マニュアル</div>
+        </header>
+
+        <div class="card">
+            <h2>1. 組織管理者の役割</h2>
+            <p>病院、福祉事業所などの施設教育担当者や管理者用のアカウントです。自組織のスタッフをユーザーとして登録し、学習状況をモニタリングしたり、必須課題の割り当てを行います。</p>
+        </div>
+
+        <div class="card">
+            <h2>2. メンバー（受講者）のアカウント管理</h2>
+            <p>自組織に所属するスタッフにシステムを利用させるためのアカウント発行手順です。</p>
+            
+            <ol>
+                <li>左側メニューの<strong>「ユーザー管理」</strong>をクリックします。</li>
+                <li>現在登録されている自組織のスタッフ一覧が表示されます。</li>
+                <li><strong>「ユーザー追加」</strong>または<strong>「ユーザー招待」</strong>ボタンをクリックします。</li>
+                <li>スタッフの<strong>「氏名」「メールアドレス」「所属部署」「役職」</strong>を入力し、初期パスワードを設定して登録します。</li>
+                <li>※スタッフが異動・退職した場合は、一覧画面の「ステータス」スイッチを切り替えることで、該当ユーザーのログイン権限をいつでも停止できます。</li>
+            </ol>
+
+            <div class="image-wrapper">
+                <img src="/images/org_dashboard.png" alt="ユーザー管理画面">
+                <span class="caption">図2.1：ユーザー管理画面（受講者の追加・削除や進捗状況をここで管理します）</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>3. 必須研修の設定（アサイン機能）</h2>
+            <p>組織全体の研修計画に基づき、受講期限を設定して特定のコースをスタッフに「必ず受講させる」ようにアサインします。</p>
+
+            <ol>
+                <li>左側メニューの<strong>「必須研修設定」</strong>（またはアサイン管理）をクリックします。</li>
+                <li><strong>「必須アサインの追加」</strong>ボタンをクリックします。</li>
+                <li>対象となる「コース」、アサインする「部署（空欄で組織全員）」、および「受講期限（日付）」を設定し、保存します。</li>
+                <li>対象スタッフのダッシュボード最上部へ「必須研修」として即座にピン留めされます。</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h2>4. 進捗状況のモニタリングとフォロー</h2>
+            <p>スタッフごとの受講記録を追跡し、学習の進んでいないメンバーを把握して早期のフォローアップに繋げます。</p>
+
+            <ul>
+                <li><strong>モニタリングダッシュボード</strong>：組織全体の「平均修了率」や、各コースごとの完了数グラフが確認できます。</li>
+                <li><strong>スタッフ個別進捗</strong>：受講者一人ひとりについて、アサインされているコースの進捗率（％）が一覧で表示されます。</li>
+                <li><strong>フィルタ機能</strong>：「部署」「完了ステータス」で絞り込み、遅れている部署やスタッフを簡単に特定できます。</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 あわい屋ZEROS. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

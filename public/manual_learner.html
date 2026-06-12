@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>あわい屋ZEROS - 受講者 (LEARNER) 向け使用マニュアル</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0914;
+            --card-bg: rgba(26, 22, 46, 0.75);
+            --border-color: rgba(217, 119, 6, 0.3);
+            --primary-color: #7c3aed;
+            --primary-glow: rgba(124, 58, 237, 0.4);
+            --secondary-color: #d97706;
+            --text-color: #e2e0ed;
+            --text-muted: #a7a2c4;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.8;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .logo-container {
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .logo-mark {
+            width: 80px;
+            height: 80px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            background: radial-gradient(circle, rgba(124,58,237,0.2) 0%, rgba(11,9,20,0) 70%);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .logo-dot {
+            width: 12px;
+            height: 12px;
+            background-color: var(--secondary-color);
+            border-radius: 50%;
+        }
+
+        h1 {
+            font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #e2e0ed 30%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 15px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #ffffff;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            margin-bottom: 20px;
+        }
+
+        ol, ul {
+            padding-left: 20px;
+            margin-bottom: 25px;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        li strong {
+            color: #ffffff;
+        }
+
+        code {
+            background-color: rgba(124, 58, 237, 0.2);
+            color: #d8b4fe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+
+        .image-wrapper {
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .image-wrapper img {
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .image-wrapper img:hover {
+            transform: scale(1.02);
+        }
+
+        .caption {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, var(--primary-color), #4c1d95);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="logo-mark">
+                    <div class="logo-dot"></div>
+                </div>
+            </div>
+            <h1>あわい屋ZEROS</h1>
+            <div class="subtitle">受講者 (LEARNER) 向け使用マニュアル</div>
+        </header>
+
+        <div class="card">
+            <h2>1. ログインとトップ画面</h2>
+            <p>一般の学習メンバー（スタッフ）が学習を開始するための手順です。</p>
+            
+            <ol>
+                <li>ブラウザでプラットフォームの本番環境URL（<code>https://awaiya-zeros-platform.vercel.app/</code> または管理者から指定されたドメイン）にアクセスします。</li>
+                <li>ログイン画面が表示されたら、管理者から事前に配布された<strong>「メールアドレス」</strong>と<strong>「パスワード」</strong>を入力します。</li>
+                <li><strong>「Login」</strong>ボタンをクリックします。</li>
+            </ol>
+
+            <div class="image-wrapper">
+                <img src="/images/login.png" alt="ログイン画面">
+                <span class="caption">図1.1：ログイン画面（メールアドレスとパスワードを入力します）</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>2. ホームダッシュボードの構成</h2>
+            <p>ログインが完了すると、あなた専用の学習ダッシュボードが表示されます。ここでは直感的にご自身の受講状況を確認できます。</p>
+
+            <ul>
+                <li><strong>学習ステータスカード</strong>：現在の「学習中のコース数」「修了したコース数」「累計学習時間」がリアルタイムに表示されます。</li>
+                <li><strong>期限付き必須研修</strong>：最上部に表示されるゴールドの枠の研修は、組織管理者によって期限が設定された必須課題です。優先的に受講してください。</li>
+                <li><strong>最近の学習</strong>：前回途中で中断したレッスンがカードとして並んでおり、1クリックで元の学習場所へ復帰できます。</li>
+            </ul>
+
+            <div class="image-wrapper">
+                <img src="/images/learner_dashboard.png" alt="受講者ダッシュボード">
+                <span class="caption">図2.1：受講者ダッシュボード（進行状況とアサインされた課題が一目で分かります）</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>3. 研修（レッスン）の進め方</h2>
+            <p>あわい屋ZEROSの教材は、レッスンという単位で構成されており、個別の進行度に応じて進捗率が自動計算されます。</p>
+
+            <ol>
+                <li>左側メニューの<strong>「研修一覧」</strong>をクリックし、カテゴリ（例: 医療安全、マインドセット等）から学習したいコースを選択します。</li>
+                <li>コース内のレッスン一覧が表示されたら、上から順に進めます。
+                    <ul>
+                        <li><span class="badge">動画</span> 画面上に表示された動画プレーヤーを再生して受講します。</li>
+                        <li><span class="badge">PDF</span> 添付されたPDFドキュメントを読み込みます。</li>
+                        <li><span class="badge">記事</span> 画面に直接表示されるマークダウンで書かれた解説テキストを読みます。</li>
+                    </ul>
+                </li>
+                <li>レッスンの学習を終えたら、ページ下部にある<strong>「完了マーク」</strong>ボタンをクリックします。これにより進捗度（％）が自動で加算され、自動で次のレッスンへ進みます。</li>
+                <li>コース内のすべてのレッスンに完了マークが付くと、コース全体が<strong>「修了 (Completed)」</strong>状態に記録されます。</li>
+            </ol>
+
+            <div class="image-wrapper">
+                <img src="/images/learner_course.png" alt="レッスン受講画面">
+                <span class="caption">図3.1：レッスン受講画面（左側に動画等のコンテンツ、右側に進捗とレッスン一覧が表示されます）</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>4. ロードマップ（学習パス）に沿って学ぶ</h2>
+            <p><strong>「ロードマップ」</strong>メニューには、病院・部署ごとに定義された学習ルートが設定されています。</p>
+            <ul>
+                <li>「新人育成ルート」「専門教育ルート」などがあり、ステップ1 ➔ ステップ2 ➔ ステップ3 と順番に受講すべき推奨コースが整理されています。</li>
+                <li>迷うことなく体系的なスキルアップを進められます。</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 あわい屋ZEROS. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
