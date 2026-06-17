@@ -278,7 +278,7 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
                   </button>
                 </div>
 
-                <form onSubmit={handleUpdateCourseSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                <form onSubmit={handleUpdateCourseSubmit} key={selectedCourse.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div className={styles.formGroup}>
                     <label className={styles.label} htmlFor="course-title">コース名</label>
                     <input id="course-title" name="title" type="text" defaultValue={selectedCourse.title} className={styles.input} required />
