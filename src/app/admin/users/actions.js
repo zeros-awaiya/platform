@@ -157,5 +157,7 @@ export async function assignRoadmapsToUser(userId, roadmapIds = []) {
   }
 
   revalidatePath('/admin/users')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/roadmaps')
   return { success: true }
 }

@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import LearnerRoadmapsClientPage from './LearnerRoadmapsClientPage'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function LearnerRoadmapsPage() {
   const supabase = await createClient()
