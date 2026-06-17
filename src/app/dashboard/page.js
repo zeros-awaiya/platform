@@ -16,6 +16,7 @@ export default async function LearnerDashboardPage() {
   let notificationsList = []
   let debugErrors = {}
   let debugData = null
+  let allAssignedRaw = null
 
   try {
     const { data: { user } } = await supabase.auth.getUser()
@@ -135,6 +136,11 @@ export default async function LearnerDashboardPage() {
           debugErrors.assignedLps = assignedLpsErr
         }
 
+        const { data: allAssigned } = await supabase
+          .from('user_learning_paths')
+          .select('*, learning_paths(name)')
+        allAssignedRaw = allAssigned
+
         const assignedLps = assignedLpsData
           ?.map(a => a.learning_paths)
           .filter(lp => lp && lp.is_active) || []
@@ -185,7 +191,8 @@ export default async function LearnerDashboardPage() {
           orgId: orgId,
           orgLpsCount: orgLps?.length || 0,
           visHqLpsCount: visHqLpsData?.length || 0,
-          assignedLpsRaw: assignedLpsData
+          assignedLpsRaw: assignedLpsData,
+          allAssignedRaw: allAssignedRaw
         }
       }
     }
