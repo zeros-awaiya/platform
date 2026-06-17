@@ -14,6 +14,7 @@ export default async function LearnerDashboardPage() {
   let mandatoryCoursesList = []
   let notificationsList = []
   let debugErrors = {}
+  let debugData = null
 
   try {
     const { data: { user } } = await supabase.auth.getUser()
@@ -177,18 +178,18 @@ export default async function LearnerDashboardPage() {
         notificationsList = (allNotifications || [])
           .filter(n => n.organization_id === null || n.organization_id === orgId)
           .slice(0, 3)
+
+        debugData = {
+          userId: user.id,
+          orgId: orgId,
+          orgLpsCount: orgLps?.length || 0,
+          visHqLpsCount: visHqLpsData?.length || 0,
+          assignedLpsRaw: assignedLpsData
+        }
       }
     }
   } catch (error) {
     console.error('Failed to load learner dashboard data:', error)
-  }
-
-  const debugData = {
-    userId: user?.id,
-    orgId: orgId,
-    orgLpsCount: orgLps?.length || 0,
-    visHqLpsCount: visHqLpsData?.length || 0,
-    assignedLpsRaw: assignedLpsData
   }
 
   return (
