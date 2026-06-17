@@ -39,6 +39,37 @@ export async function createUser(prevState, formData) {
     
     const adminClient = isMockMode ? supabase : getServiceRoleClient()
 
+    // 1. public.users でメールアドレスの重複チェック
+    const { data: existingProfile } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle()
+
+    if (existingProfile) {
+      return { error: 'このメールアドレスは既に登録されています。' }
+    }
+
+    // 2. public.users に存在しないが auth.users に残っている（ゴーストアカウント）場合のクリーンアップ
+    if (!isMockMode) {
+      const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers()
+      if (!listError && users) {
+        const ghostUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase())
+        if (ghostUser) {
+          // 安全のため、本当に public.users に存在しないか再確認してから削除
+          const { data: doubleCheckProfile } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', ghostUser.id)
+            .maybeSingle()
+
+          if (!doubleCheckProfile) {
+            await adminClient.auth.admin.deleteUser(ghostUser.id)
+          }
+        }
+      }
+    }
+
     // Auth ユーザーの作成
     const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
       email,
@@ -48,6 +79,9 @@ export async function createUser(prevState, formData) {
     })
 
     if (authError) {
+      if (authError.message === 'A user with this email address has already been registered') {
+        return { error: 'このメールアドレスは既に登録されています。' }
+      }
       return { error: `認証アカウント作成失敗: ${authError.message}` }
     }
 
