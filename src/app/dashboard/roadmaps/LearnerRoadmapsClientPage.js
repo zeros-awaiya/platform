@@ -67,7 +67,12 @@ export default function LearnerRoadmapsClientPage({ roadmaps, debugErrors }) {
           </div>
 
           <div className={styles.roadmapPath}>
-            {selectedPath.courses.map((course, idx) => {
+            {selectedPath.courses.length === 0 ? (
+              <div style={{ textAlign: 'center', color: '#71717a', padding: '3rem 1rem', background: 'rgba(255, 255, 255, 0.01)', border: '1px dashed rgba(255, 255, 255, 0.1)', borderRadius: '12px', width: '100%' }}>
+                このロードマップに登録されているコースがないか、自組織に公開されている受講可能なコースが含まれていません。
+              </div>
+            ) : (
+              selectedPath.courses.map((course, idx) => {
               const isCompleted = course.roadmap_status === 'completed'
               const isActive = course.roadmap_status === 'active'
               const isLocked = course.roadmap_status === 'locked'
@@ -148,7 +153,7 @@ export default function LearnerRoadmapsClientPage({ roadmaps, debugErrors }) {
 
                 </div>
               )
-            })}
+            }))}
           </div>
         </div>
       ) : null}

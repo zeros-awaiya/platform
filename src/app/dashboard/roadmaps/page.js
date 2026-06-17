@@ -114,7 +114,7 @@ export default async function LearnerRoadmapsPage() {
             ...lp,
             courses
           }
-        }).filter(lp => lp.courses.length > 0) // Hide empty paths
+        }) // filter(lp => lp.courses.length > 0)
       }
     }
   } catch (error) {
