@@ -300,6 +300,11 @@
   border-color: var(--primary-color);
 }
 
+.select option {
+  background-color: #18181b;
+  color: #ffffff;
+}
+
 /* Modal Layout */
 .modalOverlay {
   position: fixed;

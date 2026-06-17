@@ -62,3 +62,9 @@ body {
   --accent-badge-border: rgba(139, 92, 246, 0.2);
   --theme-glow: rgba(139, 92, 246, 0.2);
 }
+
+/* Fix select option background & text color issue in dark mode (white background on Chrome/Edge option) */
+select option {
+  background-color: #18181b;
+  color: #ffffff;
+}
