@@ -73,6 +73,8 @@ CREATE TABLE public.courses (
     title TEXT NOT NULL,
     description TEXT,
     thumbnail_url TEXT,
+    slide_pdf_url TEXT,
+    worksheet_word_url TEXT,
     is_active BOOLEAN DEFAULT TRUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
@@ -83,7 +85,7 @@ CREATE TABLE public.lessons (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     course_id UUID REFERENCES public.courses(id) ON DELETE CASCADE NOT NULL,
     title TEXT NOT NULL,
-    content_type TEXT NOT NULL CHECK (content_type IN ('video', 'pdf', 'word', 'powerpoint', 'url', 'article')),
+    content_type TEXT NOT NULL CHECK (content_type IN ('video', 'pdf', 'word', 'powerpoint', 'url', 'article', 'quiz')),
     url TEXT,
     file_path TEXT,
     article_content TEXT, -- Markdown or HTML for system internal articles
@@ -192,6 +194,20 @@ CREATE TABLE public.audit_logs (
     target_type TEXT NOT NULL,
     target_id UUID NOT NULL,
     metadata JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- 15. QUIZ QUESTIONS (Quizzes attached to lessons)
+CREATE TABLE public.quiz_questions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    lesson_id UUID REFERENCES public.lessons(id) ON DELETE CASCADE NOT NULL,
+    question TEXT NOT NULL,
+    option_a TEXT NOT NULL,
+    option_b TEXT NOT NULL,
+    option_c TEXT NOT NULL,
+    option_d TEXT NOT NULL,
+    correct_option VARCHAR(10) NOT NULL CHECK (correct_option IN ('A', 'B', 'C', 'D')),
+    sort_order INTEGER DEFAULT 0 NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
@@ -305,6 +321,7 @@ ALTER TABLE public.lesson_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mandatory_courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.quiz_questions ENABLE ROW LEVEL SECURITY;
 
 -- RLS POLICIES
 
@@ -441,6 +458,19 @@ CREATE POLICY notify_write ON public.notifications FOR ALL TO authenticated USIN
 -- Audit Logs
 CREATE POLICY audit_select ON public.audit_logs FOR SELECT TO authenticated USING ((organization_id = public.get_my_org_id() AND public.get_my_role() IN ('ORG_ADMIN', 'SYSTEM_ADMIN')) OR public.get_my_role() = 'SYSTEM_ADMIN');
 CREATE POLICY audit_write ON public.audit_logs FOR INSERT TO authenticated WITH CHECK (true);
+
+-- Quiz Questions
+CREATE POLICY quiz_questions_select ON public.quiz_questions FOR SELECT TO authenticated USING (true);
+CREATE POLICY quiz_questions_all ON public.quiz_questions FOR ALL TO authenticated USING (
+    public.get_my_role() = 'SYSTEM_ADMIN'
+    OR EXISTS (
+        SELECT 1 FROM public.lessons l
+        JOIN public.courses c ON l.course_id = c.id
+        WHERE l.id = quiz_questions.lesson_id
+          AND c.organization_id = public.get_my_org_id()
+          AND public.get_my_role() = 'ORG_ADMIN'
+    )
+);
 
 
 -- =============================================================================

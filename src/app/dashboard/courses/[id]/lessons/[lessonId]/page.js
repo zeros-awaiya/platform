@@ -32,6 +32,16 @@ export default async function LearnerLessonPage({ params }) {
         // Extract active lesson
         lesson = sortedLessons.find(l => l.id === lessonId)
 
+        if (lesson && lesson.content_type === 'quiz') {
+          const { data: quizData } = await supabase
+            .from('quiz_questions')
+            .select('id, question, option_a, option_b, option_c, option_d, sort_order')
+            .eq('lesson_id', lessonId)
+            .order('sort_order', { ascending: true })
+          
+          lesson.quiz_questions = quizData || []
+        }
+
         // Find next lesson to provide navigation
         const currentIdx = sortedLessons.findIndex(l => l.id === lessonId)
         if (currentIdx !== -1 && currentIdx < sortedLessons.length - 1) {

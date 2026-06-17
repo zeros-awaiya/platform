@@ -2,12 +2,17 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { toggleLessonProgress } from './actions'
+import { toggleLessonProgress, submitQuizAnswers } from './actions'
 import styles from '../../../../dashboard.module.css'
 
 export default function LearnerLessonClientPage({ course, lesson, nextLessonId, initialIsCompleted }) {
   const [isCompleted, setIsCompleted] = useState(initialIsCompleted)
   const [isPending, startTransition] = useTransition()
+
+  // Quiz-specific States
+  const [userAnswers, setUserAnswers] = useState({})
+  const [quizResult, setQuizResult] = useState(null)
+  const [quizError, setQuizError] = useState('')
 
   const handleToggleComplete = () => {
     const nextState = !isCompleted
@@ -19,6 +24,36 @@ export default function LearnerLessonClientPage({ course, lesson, nextLessonId, 
         setIsCompleted(nextState)
       }
     })
+  }
+
+  const handleQuizSubmit = (e) => {
+    e.preventDefault()
+    setQuizError('')
+
+    const answeredCount = Object.keys(userAnswers).length
+    const totalQuestions = lesson.quiz_questions?.length || 0
+    if (answeredCount < totalQuestions) {
+      setQuizError('すべての設問に回答してください。')
+      return
+    }
+
+    startTransition(async () => {
+      const res = await submitQuizAnswers(course.id, lesson.id, userAnswers)
+      if (res?.error) {
+        setQuizError(res.error)
+      } else {
+        setQuizResult(res)
+        if (res.isPassed) {
+          setIsCompleted(true)
+        }
+      }
+    })
+  }
+
+  const handleRetakeQuiz = () => {
+    setUserAnswers({})
+    setQuizResult(null)
+    setQuizError('')
   }
 
   // Helper to extract YouTube video ID and build embed URL
@@ -60,27 +95,29 @@ export default function LearnerLessonClientPage({ course, lesson, nextLessonId, 
                 color: '#d4d4d8',
                 textTransform: 'uppercase'
               }}>
-                {lesson.content_type}
+                {lesson.content_type === 'quiz' ? '確認テスト' : lesson.content_type.toUpperCase()}
               </span>
               <span style={{ fontSize: '0.8rem', color: '#71717a' }}>目安時間: {lesson.estimated_minutes}分</span>
             </div>
             <h2 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#ffffff' }}>{lesson.title}</h2>
           </div>
 
-          {/* Completion Action */}
-          <button
-            onClick={handleToggleComplete}
-            disabled={isPending}
-            className={`${styles.btn} ${isCompleted ? styles.btnSecondary : styles.btnPrimary}`}
-            style={{
-              padding: '0.6rem 1.5rem',
-              background: isCompleted ? 'rgba(16, 185, 129, 0.15)' : undefined,
-              borderColor: isCompleted ? '#10b981' : undefined,
-              color: isCompleted ? '#34d399' : undefined
-            }}
-          >
-            {isPending ? '更新中...' : isCompleted ? '✓ 修了済み（やり直す）' : '学習完了にする'}
-          </button>
+          {/* Completion Action (hidden for quizzes as they complete via quiz submission) */}
+          {lesson.content_type !== 'quiz' && (
+            <button
+              onClick={handleToggleComplete}
+              disabled={isPending}
+              className={`${styles.btn} ${isCompleted ? styles.btnSecondary : styles.btnPrimary}`}
+              style={{
+                padding: '0.6rem 1.5rem',
+                background: isCompleted ? 'rgba(16, 185, 129, 0.15)' : undefined,
+                borderColor: isCompleted ? '#10b981' : undefined,
+                color: isCompleted ? '#34d399' : undefined
+              }}
+            >
+              {isPending ? '更新中...' : isCompleted ? '✓ 修了済み（やり直す）' : '学習完了にする'}
+            </button>
+          )}
         </div>
 
         {/* Content Viewer based on Type */}
@@ -131,6 +168,129 @@ export default function LearnerLessonClientPage({ course, lesson, nextLessonId, 
               <a href={lesson.url} target="_blank" rel="noopener noreferrer" className={`${styles.btn} ${styles.btnPrimary}`} style={{ minWidth: '180px' }}>
                 教材を開く &nearr;
               </a>
+            </div>
+          )}
+
+          {lesson.content_type === 'quiz' && (
+            <div>
+              {isCompleted && !quizResult ? (
+                // If already completed in database (e.g. on page reload)
+                <div style={{ textAlign: 'center', padding: '3rem 2rem', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '16px' }}>
+                  <div style={{ fontSize: '3.5rem', marginBottom: '1.25rem' }}>✓</div>
+                  <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#34d399', marginBottom: '0.5rem' }}>
+                    この確認テストは修了済みです
+                  </h3>
+                  <p style={{ color: '#a1a1aa', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                    テストは合格基準を満たし、学習記録として保存されています。
+                  </p>
+                  <button
+                    onClick={() => {
+                      setIsCompleted(false)
+                      handleRetakeQuiz()
+                    }}
+                    className={`${styles.btn} ${styles.btnSecondary}`}
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    テストをもう一度受ける
+                  </button>
+                </div>
+              ) : !quizResult ? (
+                // 設問一覧フォーム
+                <form onSubmit={handleQuizSubmit}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {(lesson.quiz_questions || []).map((q, idx) => (
+                      <div key={q.id} style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '12px', padding: '1.5rem' }}>
+                        <h4 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#ffffff', marginBottom: '1rem', lineHeight: '1.4' }}>
+                          問{idx + 1}. {q.question}
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {[
+                            { key: 'A', text: q.option_a },
+                            { key: 'B', text: q.option_b },
+                            { key: 'C', text: q.option_c },
+                            { key: 'D', text: q.option_d }
+                          ].map(opt => (
+                            <label
+                              key={opt.key}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                padding: '0.75rem 1rem',
+                                background: userAnswers[q.id] === opt.key ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                                border: userAnswers[q.id] === opt.key ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                color: userAnswers[q.id] === opt.key ? '#ffffff' : '#a1a1aa'
+                              }}
+                            >
+                              <input
+                                type="radio"
+                                name={`question_${q.id}`}
+                                value={opt.key}
+                                checked={userAnswers[q.id] === opt.key}
+                                onChange={() => setUserAnswers({ ...userAnswers, [q.id]: opt.key })}
+                                style={{ accentColor: '#818cf8', width: '16px', height: '16px' }}
+                              />
+                              <span style={{ fontSize: '0.9rem' }}>{opt.key}. {opt.text}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {quizError && (
+                    <div className={styles.errorAlert} style={{ marginTop: '1.5rem', background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                      <span>⚠️ {quizError}</span>
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2.5rem' }}>
+                    <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} style={{ padding: '0.75rem 2.5rem', fontSize: '0.95rem' }} disabled={isPending}>
+                      {isPending ? '採点中...' : '確認テストを提出する'}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                // 採点結果画面
+                <div style={{ textAlign: 'center', padding: '3rem 2rem', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '16px' }}>
+                  <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>
+                    {quizResult.isPassed ? '🎉' : '😢'}
+                  </div>
+                  <h3 style={{ fontSize: '1.75rem', fontWeight: '800', color: quizResult.isPassed ? '#34d399' : '#f87171', marginBottom: '0.5rem' }}>
+                    {quizResult.isPassed ? '確認テスト合格！' : '不合格です'}
+                  </h3>
+                  <p style={{ color: '#a1a1aa', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                    得点: <strong style={{ fontSize: '1.5rem', color: '#ffffff' }}>{quizResult.scorePercent}点</strong> （合格基準: 80点以上）
+                  </p>
+                  
+                  <div style={{ maxWidth: '400px', margin: '0 auto 2.5rem auto', textAlign: 'left', background: 'rgba(0, 0, 0, 0.15)', borderRadius: '8px', padding: '1rem' }}>
+                    <h4 style={{ fontSize: '0.9rem', color: '#e4e4e7', marginBottom: '0.75rem', fontWeight: '700' }}>採点結果詳細:</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      {(lesson.quiz_questions || []).map((q, idx) => (
+                        <div key={q.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                          <span style={{ color: '#a1a1aa' }}>問 {idx + 1}</span>
+                          <span style={{ fontWeight: '700', color: quizResult.results[q.id] ? '#34d399' : '#f87171' }}>
+                            {quizResult.results[q.id] ? '○ 正解' : '× 不正解'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {!quizResult.isPassed ? (
+                    <button onClick={handleRetakeQuiz} className={`${styles.btn} ${styles.btnPrimary}`} style={{ padding: '0.6rem 2rem' }}>
+                      もう一度挑戦する
+                    </button>
+                  ) : (
+                    <div style={{ color: '#34d399', fontWeight: '600' }}>
+                      合格しました！次のレッスンへ進むことができます。
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

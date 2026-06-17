@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/server'
 
 // --- Course Actions ---
 
-export async function createCourse(title, categoryId, description = '', thumbnailUrl = '') {
+export async function createCourse(title, categoryId, description = '', thumbnailUrl = '', slidePdfUrl = '', worksheetWordUrl = '') {
   const supabase = await createClient()
 
   if (!title) {
@@ -19,6 +19,8 @@ export async function createCourse(title, categoryId, description = '', thumbnai
       category_id: categoryId || null, 
       description, 
       thumbnail_url: thumbnailUrl,
+      slide_pdf_url: slidePdfUrl || null,
+      worksheet_word_url: worksheetWordUrl || null,
       is_active: true 
     }])
     .select()
@@ -31,7 +33,7 @@ export async function createCourse(title, categoryId, description = '', thumbnai
   return { success: true, course: data[0] }
 }
 
-export async function updateCourse(id, title, categoryId, description, thumbnailUrl, isActive) {
+export async function updateCourse(id, title, categoryId, description, thumbnailUrl, isActive, slidePdfUrl = '', worksheetWordUrl = '') {
   const supabase = await createClient()
 
   if (!title) {
@@ -45,6 +47,8 @@ export async function updateCourse(id, title, categoryId, description, thumbnail
       category_id: categoryId || null, 
       description, 
       thumbnail_url: thumbnailUrl,
+      slide_pdf_url: slidePdfUrl || null,
+      worksheet_word_url: worksheetWordUrl || null,
       is_active: isActive,
       updated_at: new Date().toISOString()
     })
@@ -176,6 +180,62 @@ export async function reorderLessons(courseId, orderedIds) {
 
   if (failed) {
     return { error: `並び替えの保存に一部失敗しました: ${failed.error.message}` }
+  }
+
+  revalidatePath('/admin/courses')
+  return { success: true }
+}
+
+export async function saveQuizQuestions(lessonId, questions) {
+  // questions: Array of { id, question, option_a, option_b, option_c, option_d, correct_option }
+  const supabase = await createClient()
+
+  // 1. Fetch existing questions to detect deletions
+  const { data: existing, error: fetchErr } = await supabase
+    .from('quiz_questions')
+    .select('id')
+    .eq('lesson_id', lessonId)
+
+  if (fetchErr) {
+    return { error: `既存の問題の取得に失敗しました: ${fetchErr.message}` }
+  }
+
+  const existingIds = existing?.map(q => q.id) || []
+  const incomingIds = questions.filter(q => q.id).map(q => q.id)
+  
+  // 2. Delete questions not present in incoming list
+  const toDelete = existingIds.filter(id => !incomingIds.includes(id))
+  if (toDelete.length > 0) {
+    const { error: delErr } = await supabase
+      .from('quiz_questions')
+      .delete()
+      .in('id', toDelete)
+    if (delErr) {
+      return { error: `不要になった問題の削除に失敗しました: ${delErr.message}` }
+    }
+  }
+
+  // 3. Upsert (Insert/Update) current questions
+  if (questions.length > 0) {
+    const upsertData = questions.map((q, idx) => ({
+      id: q.id || undefined, // Generates new UUID if undefined
+      lesson_id: lessonId,
+      question: q.question,
+      option_a: q.option_a,
+      option_b: q.option_b,
+      option_c: q.option_c,
+      option_d: q.option_d,
+      correct_option: q.correct_option,
+      sort_order: idx
+    }))
+
+    const { error: upsertErr } = await supabase
+      .from('quiz_questions')
+      .upsert(upsertData)
+
+    if (upsertErr) {
+      return { error: `問題の保存に失敗しました: ${upsertErr.message}` }
+    }
   }
 
   revalidatePath('/admin/courses')
