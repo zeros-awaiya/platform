@@ -183,6 +183,14 @@ export default async function LearnerDashboardPage() {
     console.error('Failed to load learner dashboard data:', error)
   }
 
+  const debugData = {
+    userId: user?.id,
+    orgId: orgId,
+    orgLpsCount: orgLps?.length || 0,
+    visHqLpsCount: visHqLpsData?.length || 0,
+    assignedLpsRaw: assignedLpsData
+  }
+
   return (
     <LearnerDashboardClientPage
       profile={userProfile}
@@ -193,6 +201,7 @@ export default async function LearnerDashboardPage() {
       mandatoryCourses={mandatoryCoursesList}
       notifications={notificationsList}
       debugErrors={debugErrors}
+      debugData={debugData}
     />
   )
 }
