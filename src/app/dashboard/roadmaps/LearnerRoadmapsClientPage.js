@@ -4,31 +4,13 @@ import { useState } from 'react'
 import Link from 'next/link'
 import styles from '../dashboard.module.css'
 
-export default function LearnerRoadmapsClientPage({ roadmaps, debugErrors }) {
+export default function LearnerRoadmapsClientPage({ roadmaps }) {
   const [selectedPathId, setSelectedPathId] = useState(roadmaps[0]?.id || null)
 
   const selectedPath = roadmaps.find(r => r.id === selectedPathId)
 
   return (
     <div>
-      {/* デバッグ用エラー表示領域 */}
-      {debugErrors && Object.keys(debugErrors).length > 0 && (
-        <div style={{
-          background: 'rgba(239, 68, 68, 0.1)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          color: '#fca5a5',
-          padding: '1.25rem',
-          borderRadius: '12px',
-          marginBottom: '2rem',
-          fontSize: '0.9rem',
-          fontFamily: 'monospace',
-          whiteSpace: 'pre-wrap'
-        }}>
-          <h4 style={{ fontWeight: '800', marginBottom: '0.5rem', color: '#ef4444' }}>⚠️ データベースクエリエラー（デバッグ用情報）</h4>
-          {JSON.stringify(debugErrors, null, 2)}
-        </div>
-      )}
-
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
@@ -67,12 +49,7 @@ export default function LearnerRoadmapsClientPage({ roadmaps, debugErrors }) {
           </div>
 
           <div className={styles.roadmapPath}>
-            {selectedPath.courses.length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#71717a', padding: '3rem 1rem', background: 'rgba(255, 255, 255, 0.01)', border: '1px dashed rgba(255, 255, 255, 0.1)', borderRadius: '12px', width: '100%' }}>
-                このロードマップに登録されているコースがないか、自組織に公開されている受講可能なコースが含まれていません。
-              </div>
-            ) : (
-              selectedPath.courses.map((course, idx) => {
+            {selectedPath.courses.map((course, idx) => {
               const isCompleted = course.roadmap_status === 'completed'
               const isActive = course.roadmap_status === 'active'
               const isLocked = course.roadmap_status === 'locked'
@@ -153,7 +130,7 @@ export default function LearnerRoadmapsClientPage({ roadmaps, debugErrors }) {
 
                 </div>
               )
-            }))}
+            })}
           </div>
         </div>
       ) : null}

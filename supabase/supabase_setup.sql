@@ -365,11 +365,11 @@ USING (
     OR public.get_my_role() = 'SYSTEM_ADMIN'
     OR (organization_id IS NULL AND EXISTS (
         SELECT 1 FROM public.learning_path_visibility lpv 
-        WHERE lpv.learning_path_id = id AND lpv.organization_id = public.get_my_org_id())
+        WHERE lpv.learning_path_id = learning_paths.id AND lpv.organization_id = public.get_my_org_id())
     )
     OR EXISTS (
         SELECT 1 FROM public.user_learning_paths ulp
-        WHERE ulp.learning_path_id = id AND ulp.user_id = auth.uid()
+        WHERE ulp.learning_path_id = learning_paths.id AND ulp.user_id = auth.uid()
     )
 );
 CREATE POLICY lp_write ON public.learning_paths FOR ALL TO authenticated USING (public.get_my_role() = 'SYSTEM_ADMIN' OR (organization_id = public.get_my_org_id() AND public.get_my_role() = 'ORG_ADMIN'));
