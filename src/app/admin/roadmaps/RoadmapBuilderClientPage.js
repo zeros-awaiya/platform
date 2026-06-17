@@ -212,7 +212,7 @@ export default function RoadmapBuilderClientPage({ initialRoadmaps, allCourses }
                   </button>
                 </div>
 
-                <form onSubmit={handleUpdateRoadmapSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                <form onSubmit={handleUpdateRoadmapSubmit} key={selectedRoadmap.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div className={styles.formGroup}>
                     <label className={styles.label} htmlFor="roadmap-name">ロードマップ名</label>
                     <input id="roadmap-name" name="name" type="text" defaultValue={selectedRoadmap.name} className={styles.input} required />
