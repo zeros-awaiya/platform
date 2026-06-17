@@ -55,8 +55,19 @@ export default async function LearnerCoursesPage() {
           ?.map(vh => vh.courses)
           .filter(c => c && c.is_active) || []
 
+        // C. HQ courses that are active globally (organization_id IS NULL)
+        const { data: hqActiveCourses } = await supabase
+          .from('courses')
+          .select('*, categories(name)')
+          .eq('is_active', true)
+          .is('organization_id', null)
+
         // Combine courses and deduplicate by ID
-        const combined = [...(orgCourses || []), ...hqCourses]
+        const combined = [
+          ...(orgCourses || []), 
+          ...hqCourses,
+          ...(hqActiveCourses || [])
+        ]
         const uniqueMap = new Map(combined.map(c => [c.id, c]))
         
         courses = Array.from(uniqueMap.values()).map(course => {

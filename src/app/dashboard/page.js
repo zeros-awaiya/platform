@@ -56,9 +56,16 @@ export default async function LearnerDashboardPage() {
           .select('course_id')
           .eq('organization_id', orgId)
 
+        const { data: hqActiveCourses } = await supabase
+          .from('courses')
+          .select('id')
+          .eq('is_active', true)
+          .is('organization_id', null)
+
         const combinedIds = new Set([
           ...(orgCourses?.map(c => c.id) || []),
-          ...(visHq?.map(vh => vh.course_id) || [])
+          ...(visHq?.map(vh => vh.course_id) || []),
+          ...(hqActiveCourses?.map(c => c.id) || [])
         ])
         totalVisibleCourses = combinedIds.size
 
