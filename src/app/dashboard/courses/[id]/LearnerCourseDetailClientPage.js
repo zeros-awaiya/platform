@@ -26,69 +26,6 @@ export default function LearnerCourseDetailClientPage({ course, enrollment, comp
           <p style={{ color: '#a1a1aa', fontSize: '0.95rem', marginTop: '1rem', lineHeight: '1.6', maxWidth: '600px' }}>
             {course.description || 'このコースには解説がありません。'}
           </p>
-
-          {(course.slide_pdf_url || course.worksheet_word_url) && (
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-              {course.slide_pdf_url && (
-                <a
-                  href={course.slide_pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.btn}
-                  style={{
-                    background: 'rgba(239, 68, 68, 0.1)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    color: '#fca5a5',
-                    fontSize: '0.85rem',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '8px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    textDecoration: 'none',
-                    fontWeight: '600',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  スライドPDF をダウンロード
-                </a>
-              )}
-              {course.worksheet_word_url && (
-                <a
-                  href={course.worksheet_word_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.btn}
-                  style={{
-                    background: 'rgba(59, 130, 246, 0.1)',
-                    border: '1px solid rgba(59, 130, 246, 0.3)',
-                    color: '#93c5fd',
-                    fontSize: '0.85rem',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '8px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    textDecoration: 'none',
-                    fontWeight: '600',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  ワークシートWord をダウンロード
-                </a>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Progress Summary Card on the right */}

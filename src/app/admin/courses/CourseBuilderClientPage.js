@@ -139,6 +139,8 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
     const filePath = formData.get('file_path')
     const estimatedMinutes = formData.get('estimated_minutes')
     const articleContent = formData.get('article_content')
+    const slidePdfUrl = formData.get('slide_pdf_url')
+    const worksheetWordUrl = formData.get('worksheet_word_url')
 
     startTransition(async () => {
       const res = await createLesson(
@@ -148,7 +150,9 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
         url, 
         filePath, 
         articleContent, 
-        estimatedMinutes
+        estimatedMinutes,
+        slidePdfUrl,
+        worksheetWordUrl
       )
       if (res?.error) {
         setErrorMsg(res.error)
@@ -176,6 +180,8 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
     const filePath = formData.get('file_path')
     const estimatedMinutes = formData.get('estimated_minutes')
     const articleContent = formData.get('article_content')
+    const slidePdfUrl = formData.get('slide_pdf_url')
+    const worksheetWordUrl = formData.get('worksheet_word_url')
 
     startTransition(async () => {
       const res = await updateLesson(
@@ -185,7 +191,9 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
         url, 
         filePath, 
         articleContent, 
-        estimatedMinutes
+        estimatedMinutes,
+        slidePdfUrl,
+        worksheetWordUrl
       )
       if (res?.error) {
         setErrorMsg(res.error)
@@ -361,15 +369,7 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
                     </select>
                   </div>
 
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="course-slide-pdf">スライドPDF URL</label>
-                    <input id="course-slide-pdf" name="slide_pdf_url" type="text" defaultValue={selectedCourse.slide_pdf_url || ''} className={styles.input} placeholder="https://example.com/slide.pdf" />
-                  </div>
 
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="course-worksheet-word">ワークシートWord URL</label>
-                    <input id="course-worksheet-word" name="worksheet_word_url" type="text" defaultValue={selectedCourse.worksheet_word_url || ''} className={styles.input} placeholder="https://example.com/worksheet.docx" />
-                  </div>
 
                   <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                     <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={isPending}>
@@ -508,15 +508,7 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
                 <input id="new-course-thumb" name="thumbnail_url" type="text" className={styles.input} placeholder="https://example.com/thumb.jpg" />
               </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="new-course-slide-pdf">スライドPDF URL</label>
-                <input id="new-course-slide-pdf" name="slide_pdf_url" type="text" className={styles.input} placeholder="https://example.com/slide.pdf" />
-              </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="new-course-worksheet-word">ワークシートWord URL</label>
-                <input id="new-course-worksheet-word" name="worksheet_word_url" type="text" className={styles.input} placeholder="https://example.com/worksheet.docx" />
-              </div>
 
               {errorMsg && (
                 <div className={styles.errorAlert} style={{ marginBottom: '1.25rem' }}>
@@ -580,6 +572,16 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
                     <label className={styles.label} htmlFor="lesson-url">教材のURL / 共有リンク</label>
                     <input id="lesson-url" name="url" type="text" className={styles.input} placeholder="例: https://www.youtube.com/watch?v=... もしくは Google Drive 共有リンク" />
                     <span style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '0.25rem' }}>※動画、PDF、ドキュメントの共有リンクを入力してください（解説記事の場合は不要です）。</span>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.label} htmlFor="lesson-slide-pdf">スライドPDF URL</label>
+                    <input id="lesson-slide-pdf" name="slide_pdf_url" type="text" className={styles.input} placeholder="例: https://example.com/slide.pdf" />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.label} htmlFor="lesson-worksheet-word">ワークシートWord URL</label>
+                    <input id="lesson-worksheet-word" name="worksheet_word_url" type="text" className={styles.input} placeholder="例: https://example.com/worksheet.docx" />
                   </div>
 
                   <div className={styles.formGroup}>
@@ -747,6 +749,16 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
                   <div className={styles.formGroup}>
                     <label className={styles.label} htmlFor="edit-lesson-url">教材のURL / 共有リンク</label>
                     <input id="edit-lesson-url" name="url" type="text" defaultValue={editLessonItem.url || ''} className={styles.input} />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.label} htmlFor="edit-lesson-slide-pdf">スライドPDF URL</label>
+                    <input id="edit-lesson-slide-pdf" name="slide_pdf_url" type="text" defaultValue={editLessonItem.slide_pdf_url || ''} className={styles.input} placeholder="例: https://example.com/slide.pdf" />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.label} htmlFor="edit-lesson-worksheet-word">ワークシートWord URL</label>
+                    <input id="edit-lesson-worksheet-word" name="worksheet_word_url" type="text" defaultValue={editLessonItem.worksheet_word_url || ''} className={styles.input} placeholder="例: https://example.com/worksheet.docx" />
                   </div>
 
                   <div className={styles.formGroup}>

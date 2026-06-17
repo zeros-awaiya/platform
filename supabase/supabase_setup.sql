@@ -73,8 +73,6 @@ CREATE TABLE public.courses (
     title TEXT NOT NULL,
     description TEXT,
     thumbnail_url TEXT,
-    slide_pdf_url TEXT,
-    worksheet_word_url TEXT,
     is_active BOOLEAN DEFAULT TRUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
@@ -89,6 +87,8 @@ CREATE TABLE public.lessons (
     url TEXT,
     file_path TEXT,
     article_content TEXT, -- Markdown or HTML for system internal articles
+    slide_pdf_url TEXT,
+    worksheet_word_url TEXT,
     estimated_minutes INTEGER DEFAULT 0 NOT NULL,
     sort_order INTEGER DEFAULT 0 NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL

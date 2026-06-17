@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/server'
 
 // --- Course Actions ---
 
-export async function createCourse(title, categoryId, description = '', thumbnailUrl = '', slidePdfUrl = '', worksheetWordUrl = '') {
+export async function createCourse(title, categoryId, description = '', thumbnailUrl = '') {
   const supabase = await createClient()
 
   if (!title) {
@@ -19,8 +19,6 @@ export async function createCourse(title, categoryId, description = '', thumbnai
       category_id: categoryId || null, 
       description, 
       thumbnail_url: thumbnailUrl,
-      slide_pdf_url: slidePdfUrl || null,
-      worksheet_word_url: worksheetWordUrl || null,
       is_active: true 
     }])
     .select()
@@ -33,7 +31,7 @@ export async function createCourse(title, categoryId, description = '', thumbnai
   return { success: true, course: data[0] }
 }
 
-export async function updateCourse(id, title, categoryId, description, thumbnailUrl, isActive, slidePdfUrl = '', worksheetWordUrl = '') {
+export async function updateCourse(id, title, categoryId, description, thumbnailUrl, isActive) {
   const supabase = await createClient()
 
   if (!title) {
@@ -47,8 +45,6 @@ export async function updateCourse(id, title, categoryId, description, thumbnail
       category_id: categoryId || null, 
       description, 
       thumbnail_url: thumbnailUrl,
-      slide_pdf_url: slidePdfUrl || null,
-      worksheet_word_url: worksheetWordUrl || null,
       is_active: isActive,
       updated_at: new Date().toISOString()
     })
@@ -80,7 +76,7 @@ export async function deleteCourse(id) {
 
 // --- Lesson Actions ---
 
-export async function createLesson(courseId, title, contentType, url = '', filePath = '', articleContent = '', estimatedMinutes = 5) {
+export async function createLesson(courseId, title, contentType, url = '', filePath = '', articleContent = '', estimatedMinutes = 5, slidePdfUrl = '', worksheetWordUrl = '') {
   const supabase = await createClient()
 
   if (!title) {
@@ -107,6 +103,8 @@ export async function createLesson(courseId, title, contentType, url = '', fileP
       file_path: filePath || null,
       article_content: articleContent || null,
       estimated_minutes: parseInt(estimatedMinutes) || 0,
+      slide_pdf_url: slidePdfUrl || null,
+      worksheet_word_url: worksheetWordUrl || null,
       sort_order: nextSortOrder
     }])
     .select()
@@ -119,7 +117,7 @@ export async function createLesson(courseId, title, contentType, url = '', fileP
   return { success: true, lesson: data[0] }
 }
 
-export async function updateLesson(id, title, contentType, url, filePath, articleContent, estimatedMinutes) {
+export async function updateLesson(id, title, contentType, url, filePath, articleContent, estimatedMinutes, slidePdfUrl = '', worksheetWordUrl = '') {
   const supabase = await createClient()
 
   if (!title) {
@@ -134,7 +132,9 @@ export async function updateLesson(id, title, contentType, url, filePath, articl
       url: url || null,
       file_path: filePath || null,
       article_content: articleContent || null,
-      estimated_minutes: parseInt(estimatedMinutes) || 0
+      estimated_minutes: parseInt(estimatedMinutes) || 0,
+      slide_pdf_url: slidePdfUrl || null,
+      worksheet_word_url: worksheetWordUrl || null
     })
     .eq('id', id)
 

@@ -100,6 +100,69 @@ export default function LearnerLessonClientPage({ course, lesson, nextLessonId, 
               <span style={{ fontSize: '0.8rem', color: '#71717a' }}>目安時間: {lesson.estimated_minutes}分</span>
             </div>
             <h2 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#ffffff' }}>{lesson.title}</h2>
+
+            {(lesson.slide_pdf_url || lesson.worksheet_word_url) && (
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                {lesson.slide_pdf_url && (
+                  <a
+                    href={lesson.slide_pdf_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.btn}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid rgba(239, 68, 68, 0.25)',
+                      color: '#fca5a5',
+                      fontSize: '0.8rem',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '6px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      textDecoration: 'none',
+                      fontWeight: '600',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    スライドPDF
+                  </a>
+                )}
+                {lesson.worksheet_word_url && (
+                  <a
+                    href={lesson.worksheet_word_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.btn}
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.1)',
+                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                      color: '#93c5fd',
+                      fontSize: '0.8rem',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '6px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      textDecoration: 'none',
+                      fontWeight: '600',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    ワークシートWord
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Completion Action (hidden for quizzes as they complete via quiz submission) */}
