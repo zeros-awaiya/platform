@@ -146,6 +146,41 @@
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
+/* コースカード上部のサムネイル（16:9バナー） */
+.courseThumb {
+  margin: -1.25rem -1.25rem 0.25rem;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a2238 0%, #3d4660 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.courseThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.courseCard:hover .courseThumb img {
+  transform: scale(1.04);
+}
+
+.courseThumbFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.4;
+}
+
 .categoryTag {
   font-size: 0.75rem;
   font-weight: 600;

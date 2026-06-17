@@ -67,6 +67,14 @@ export default function LearnerCoursesClientPage({ initialCourses, categories })
               href={`/dashboard/courses/${course.id}`}
               className={styles.courseCard}
             >
+              <div className={styles.courseThumb}>
+                {course.thumbnail_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={course.thumbnail_url} alt={course.title} loading="lazy" />
+                ) : (
+                  <div className={styles.courseThumbFallback}>{course.title}</div>
+                )}
+              </div>
               <span className={styles.categoryTag}>{course.categories?.name || 'その他'}</span>
               <h3 className={styles.courseTitle}>{course.title}</h3>
               <p className={styles.courseDesc}>{course.description || 'このコースには解説がありません。'}</p>
