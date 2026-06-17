@@ -381,8 +381,8 @@ CREATE POLICY lpv_write ON public.learning_path_visibility FOR ALL TO authentica
 
 -- User Learning Paths
 ALTER TABLE public.user_learning_paths ENABLE ROW LEVEL SECURITY;
-CREATE POLICY ulp_select ON public.user_learning_paths FOR SELECT TO authenticated USING (user_id = auth.uid() OR public.get_my_role() = 'SYSTEM_ADMIN' OR (public.get_my_role() = 'ORG_ADMIN' AND EXISTS (SELECT 1 FROM public.users u WHERE u.id = user_id AND u.organization_id = public.get_my_org_id())));
-CREATE POLICY ulp_write ON public.user_learning_paths FOR ALL TO authenticated USING (public.get_my_role() = 'SYSTEM_ADMIN' OR (public.get_my_role() = 'ORG_ADMIN' AND EXISTS (SELECT 1 FROM public.users u WHERE u.id = user_id AND u.organization_id = public.get_my_org_id())));
+CREATE POLICY ulp_select ON public.user_learning_paths FOR SELECT TO authenticated USING (user_id = auth.uid() OR public.get_my_role() IN ('SYSTEM_ADMIN', 'ORG_ADMIN'));
+CREATE POLICY ulp_write ON public.user_learning_paths FOR ALL TO authenticated USING (public.get_my_role() IN ('SYSTEM_ADMIN', 'ORG_ADMIN'));
 
 -- Learning Path Courses
 CREATE POLICY lpc_select ON public.learning_path_courses FOR SELECT TO authenticated 
