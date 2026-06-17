@@ -4,13 +4,31 @@ import { useState } from 'react'
 import Link from 'next/link'
 import styles from '../dashboard.module.css'
 
-export default function LearnerRoadmapsClientPage({ roadmaps }) {
+export default function LearnerRoadmapsClientPage({ roadmaps, debugErrors }) {
   const [selectedPathId, setSelectedPathId] = useState(roadmaps[0]?.id || null)
 
   const selectedPath = roadmaps.find(r => r.id === selectedPathId)
 
   return (
     <div>
+      {/* デバッグ用エラー表示領域 */}
+      {debugErrors && Object.keys(debugErrors).length > 0 && (
+        <div style={{
+          background: 'rgba(239, 68, 68, 0.1)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          color: '#fca5a5',
+          padding: '1.25rem',
+          borderRadius: '12px',
+          marginBottom: '2rem',
+          fontSize: '0.9rem',
+          fontFamily: 'monospace',
+          whiteSpace: 'pre-wrap'
+        }}>
+          <h4 style={{ fontWeight: '800', marginBottom: '0.5rem', color: '#ef4444' }}>⚠️ データベースクエリエラー（デバッグ用情報）</h4>
+          {JSON.stringify(debugErrors, null, 2)}
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>

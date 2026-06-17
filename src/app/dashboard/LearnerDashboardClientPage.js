@@ -10,7 +10,8 @@ export default function LearnerDashboardClientPage({
   completedCount,
   totalVisibleCourses,
   mandatoryCourses,
-  notifications
+  notifications,
+  debugErrors
 }) {
   const name = profile?.name || '受講者'
   const orgName = profile?.organizations?.name || 'あわい屋ZEROS'
@@ -22,6 +23,23 @@ export default function LearnerDashboardClientPage({
 
   return (
     <div>
+      {/* デバッグ用エラー表示領域 */}
+      {debugErrors && Object.keys(debugErrors).length > 0 && (
+        <div style={{
+          background: 'rgba(239, 68, 68, 0.1)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          color: '#fca5a5',
+          padding: '1.25rem',
+          borderRadius: '12px',
+          marginBottom: '2rem',
+          fontSize: '0.9rem',
+          fontFamily: 'monospace',
+          whiteSpace: 'pre-wrap'
+        }}>
+          <h4 style={{ fontWeight: '800', marginBottom: '0.5rem', color: '#ef4444' }}>⚠️ データベースクエリエラー（デバッグ用情報）</h4>
+          {JSON.stringify(debugErrors, null, 2)}
+        </div>
+      )}
       {/* Welcome Banner */}
       <div className={styles.card} style={{
         marginBottom: '2rem',

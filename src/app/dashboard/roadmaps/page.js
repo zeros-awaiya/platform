@@ -7,6 +7,7 @@ export default async function LearnerRoadmapsPage() {
   const supabase = await createClient()
 
   let roadmaps = []
+  let debugErrors = {}
 
   try {
     const { data: { user } } = await supabase.auth.getUser()
@@ -33,27 +34,39 @@ export default async function LearnerRoadmapsPage() {
         // 2. Fetch active roadmaps visible to user (own organization, visibility-mapped HQ, or individually assigned)
         
         // A. 自組織専用のロードマップ
-        const { data: orgLps } = await supabase
+        const { data: orgLps, error: orgLpsErr } = await supabase
           .from('learning_paths')
           .select('*, learning_path_courses(*, courses(id, title, description, category_id, categories(name))))')
           .eq('is_active', true)
           .eq('organization_id', orgId)
+        if (orgLpsErr) {
+          console.error('orgLps query error in roadmaps page:', orgLpsErr)
+          debugErrors.orgLps = orgLpsErr
+        }
 
         // B. 本部ロードマップのうち、自組織に公開されているもの
-        const { data: visHqLpsData } = await supabase
+        const { data: visHqLpsData, error: visHqLpsErr } = await supabase
           .from('learning_path_visibility')
           .select('learning_path_id, learning_paths(*, learning_path_courses(*, courses(id, title, description, category_id, categories(name))))')
           .eq('organization_id', orgId)
+        if (visHqLpsErr) {
+          console.error('visHqLps query error in roadmaps page:', visHqLpsErr)
+          debugErrors.visHqLps = visHqLpsErr
+        }
 
         const visHqLps = visHqLpsData
           ?.map(v => v.learning_paths)
           .filter(lp => lp && lp.is_active) || []
 
         // C. 個人に個別割り当てされているロードマップ
-        const { data: assignedLpsData } = await supabase
+        const { data: assignedLpsData, error: assignedLpsErr } = await supabase
           .from('user_learning_paths')
           .select('learning_path_id, learning_paths(*, learning_path_courses(*, courses(id, title, description, category_id, categories(name))))')
           .eq('user_id', user.id)
+        if (assignedLpsErr) {
+          console.error('assignedLps query error in roadmaps page:', assignedLpsErr)
+          debugErrors.assignedLps = assignedLpsErr
+        }
 
         const assignedLps = assignedLpsData
           ?.map(a => a.learning_paths)
@@ -111,6 +124,7 @@ export default async function LearnerRoadmapsPage() {
   return (
     <LearnerRoadmapsClientPage
       roadmaps={roadmaps}
+      debugErrors={debugErrors}
     />
   )
 }

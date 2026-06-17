@@ -146,10 +146,12 @@ class QueryBuilder {
       data = data.map(u => {
         const org = db.organizations.find(o => o.id === u.organization_id)
         const dept = db.departments.find(d => d.id === u.department_id)
+        const ulps = (db.user_learning_paths || []).filter(ulp => ulp.user_id === u.id)
         return {
           ...u,
           organizations: org ? { name: org.name } : null,
-          departments: dept ? { name: dept.name } : null
+          departments: dept ? { name: dept.name } : null,
+          user_learning_paths: ulps
         }
       })
     } else if (this.table === 'courses') {
@@ -182,9 +184,53 @@ class QueryBuilder {
             courses: c ? { ...c, categories: cat ? { name: cat.name } : null } : null
           }
         })
+        const vis = (db.learning_path_visibility || []).filter(v => v.learning_path_id === lp.id)
         return {
           ...lp,
-          learning_path_courses: lpcWithCourses
+          learning_path_courses: lpcWithCourses,
+          learning_path_visibility: vis
+        }
+      })
+    } else if (this.table === 'learning_path_visibility') {
+      data = data.map(v => {
+        const lp = db.learning_paths.find(item => item.id === v.learning_path_id)
+        let lpData = null
+        if (lp) {
+          const lpc = (db.learning_path_courses || []).filter(item => item.learning_path_id === lp.id)
+          const lpcWithCourses = lpc.map(item => {
+            const c = db.courses.find(c => c.id === item.course_id)
+            const cat = c ? db.categories.find(cat => cat.id === c.category_id) : null
+            return {
+              ...item,
+              courses: c ? { ...c, categories: cat ? { name: cat.name } : null } : null
+            }
+          })
+          lpData = { ...lp, learning_path_courses: lpcWithCourses }
+        }
+        return {
+          ...v,
+          learning_paths: lpData
+        }
+      })
+    } else if (this.table === 'user_learning_paths') {
+      data = data.map(ulp => {
+        const lp = db.learning_paths.find(item => item.id === ulp.learning_path_id)
+        let lpData = null
+        if (lp) {
+          const lpc = (db.learning_path_courses || []).filter(item => item.learning_path_id === lp.id)
+          const lpcWithCourses = lpc.map(item => {
+            const c = db.courses.find(c => c.id === item.course_id)
+            const cat = c ? db.categories.find(cat => cat.id === c.category_id) : null
+            return {
+              ...item,
+              courses: c ? { ...c, categories: cat ? { name: cat.name } : null } : null
+            }
+          })
+          lpData = { ...lp, learning_path_courses: lpcWithCourses }
+        }
+        return {
+          ...ulp,
+          learning_paths: lpData
         }
       })
     } else if (this.table === 'enrollments') {
