@@ -30,12 +30,43 @@ export default async function LearnerRoadmapsPage() {
         const progressMap = new Map(enrollments?.map(e => [e.course_id, e.progress_percent]) || [])
         const completedCourseIds = enrollments?.filter(e => e.status === 'completed').map(e => e.course_id) || []
 
-        // 2. Fetch active roadmaps visible to user (own organization or HQ)
-        const { data: lpData } = await supabase
+        // 2. Fetch active roadmaps visible to user (own organization, visibility-mapped HQ, or individually assigned)
+        
+        // A. 自組織専用のロードマップ
+        const { data: orgLps } = await supabase
           .from('learning_paths')
           .select('*, learning_path_courses(*, courses(id, title, description, category_id, categories(name))))')
           .eq('is_active', true)
-          .or(`organization_id.eq.${orgId},organization_id.is.null`)
+          .eq('organization_id', orgId)
+
+        // B. 本部ロードマップのうち、自組織に公開されているもの
+        const { data: visHqLpsData } = await supabase
+          .from('learning_path_visibility')
+          .select('learning_path_id, learning_paths(*, learning_path_courses(*, courses(id, title, description, category_id, categories(name))))')
+          .eq('organization_id', orgId)
+
+        const visHqLps = visHqLpsData
+          ?.map(v => v.learning_paths)
+          .filter(lp => lp && lp.is_active) || []
+
+        // C. 個人に個別割り当てされているロードマップ
+        const { data: assignedLpsData } = await supabase
+          .from('user_learning_paths')
+          .select('learning_path_id, learning_paths(*, learning_path_courses(*, courses(id, title, description, category_id, categories(name))))')
+          .eq('user_id', user.id)
+
+        const assignedLps = assignedLpsData
+          ?.map(a => a.learning_paths)
+          .filter(lp => lp && lp.is_active) || []
+
+        // 結合して重複を排除
+        const combinedLps = [
+          ...(orgLps || []),
+          ...visHqLps,
+          ...assignedLps
+        ]
+        const uniqueLpMap = new Map(combinedLps.map(lp => [lp.id, lp]))
+        const lpData = Array.from(uniqueLpMap.values())
 
         // 3. Process each roadmap and calculate step states (Completed, Next Active, Locked)
         roadmaps = (lpData || []).map(lp => {

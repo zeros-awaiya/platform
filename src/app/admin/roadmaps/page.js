@@ -8,6 +8,7 @@ export default async function RoadmapsAdminPage() {
 
   let roadmaps = []
   let allCourses = []
+  let organizations = []
 
   try {
     // 1. Fetch all active courses to allow adding them to roadmaps
@@ -18,10 +19,17 @@ export default async function RoadmapsAdminPage() {
       .order('title', { ascending: true })
     allCourses = courseData || []
 
-    // 2. Fetch learning paths with associated courses
+    // 1-2. Fetch all organizations for visibility setting
+    const { data: orgs } = await supabase
+      .from('organizations')
+      .select('id, name')
+      .order('name', { ascending: true })
+    organizations = orgs || []
+
+    // 2. Fetch learning paths with associated courses and visibilities
     const { data: lpData } = await supabase
       .from('learning_paths')
-      .select('*, learning_path_courses(*, courses(id, title, description, category_id, categories(name))))')
+      .select('*, learning_path_visibility(*), learning_path_courses(*, courses(id, title, description, category_id, categories(name))))')
       .order('created_at', { ascending: false })
 
     // Process and sort courses inside roadmaps
@@ -29,7 +37,8 @@ export default async function RoadmapsAdminPage() {
       const sortedLpc = (lp.learning_path_courses || []).sort((a, b) => a.sort_order - b.sort_order)
       return {
         ...lp,
-        courses: sortedLpc.map(lpc => lpc.courses).filter(Boolean)
+        courses: sortedLpc.map(lpc => lpc.courses).filter(Boolean),
+        visibility: lp.learning_path_visibility?.map(v => v.organization_id) || []
       }
     })
 
@@ -41,6 +50,7 @@ export default async function RoadmapsAdminPage() {
     <RoadmapBuilderClientPage
       initialRoadmaps={roadmaps}
       allCourses={allCourses}
+      organizations={organizations}
     />
   )
 }

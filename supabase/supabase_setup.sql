@@ -121,6 +121,24 @@ CREATE TABLE public.learning_path_courses (
     UNIQUE (learning_path_id, course_id)
 );
 
+-- 9-2. LEARNING PATH VISIBILITY (Controls which Tenants can see HQ learning paths)
+CREATE TABLE public.learning_path_visibility (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    learning_path_id UUID REFERENCES public.learning_paths(id) ON DELETE CASCADE NOT NULL,
+    organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    UNIQUE (learning_path_id, organization_id)
+);
+
+-- 9-3. USER LEARNING PATHS (Assigned roadmaps to individual users)
+CREATE TABLE public.user_learning_paths (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+    learning_path_id UUID REFERENCES public.learning_paths(id) ON DELETE CASCADE NOT NULL,
+    assigned_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    UNIQUE (user_id, learning_path_id)
+);
+
 -- 10. ENROLLMENTS (Track Course Status)
 CREATE TABLE public.enrollments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -341,8 +359,26 @@ CREATE POLICY cv_select ON public.course_visibility FOR SELECT TO authenticated 
 CREATE POLICY cv_write ON public.course_visibility FOR ALL TO authenticated USING (public.get_my_role() = 'SYSTEM_ADMIN');
 
 -- Learning Paths (Roadmaps)
-CREATE POLICY lp_select ON public.learning_paths FOR SELECT TO authenticated USING (organization_id IS NULL OR organization_id = public.get_my_org_id() OR public.get_my_role() = 'SYSTEM_ADMIN');
+CREATE POLICY lp_select ON public.learning_paths FOR SELECT TO authenticated 
+USING (
+    organization_id = public.get_my_org_id() 
+    OR public.get_my_role() = 'SYSTEM_ADMIN'
+    OR (organization_id IS NULL AND EXISTS (
+        SELECT 1 FROM public.learning_path_visibility lpv 
+        WHERE lpv.learning_path_id = id AND lpv.organization_id = public.get_my_org_id())
+    )
+);
 CREATE POLICY lp_write ON public.learning_paths FOR ALL TO authenticated USING (public.get_my_role() = 'SYSTEM_ADMIN' OR (organization_id = public.get_my_org_id() AND public.get_my_role() = 'ORG_ADMIN'));
+
+-- Learning Path Visibility
+ALTER TABLE public.learning_path_visibility ENABLE ROW LEVEL SECURITY;
+CREATE POLICY lpv_select ON public.learning_path_visibility FOR SELECT TO authenticated USING (organization_id = public.get_my_org_id() OR public.get_my_role() = 'SYSTEM_ADMIN');
+CREATE POLICY lpv_write ON public.learning_path_visibility FOR ALL TO authenticated USING (public.get_my_role() = 'SYSTEM_ADMIN');
+
+-- User Learning Paths
+ALTER TABLE public.user_learning_paths ENABLE ROW LEVEL SECURITY;
+CREATE POLICY ulp_select ON public.user_learning_paths FOR SELECT TO authenticated USING (user_id = auth.uid() OR public.get_my_role() = 'SYSTEM_ADMIN' OR (public.get_my_role() = 'ORG_ADMIN' AND EXISTS (SELECT 1 FROM public.users u WHERE u.id = user_id AND u.organization_id = public.get_my_org_id())));
+CREATE POLICY ulp_write ON public.user_learning_paths FOR ALL TO authenticated USING (public.get_my_role() = 'SYSTEM_ADMIN' OR (public.get_my_role() = 'ORG_ADMIN' AND EXISTS (SELECT 1 FROM public.users u WHERE u.id = user_id AND u.organization_id = public.get_my_org_id())));
 
 -- Learning Path Courses
 CREATE POLICY lpc_select ON public.learning_path_courses FOR SELECT TO authenticated 

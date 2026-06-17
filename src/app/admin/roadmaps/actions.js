@@ -25,13 +25,14 @@ export async function createRoadmap(name, description = '') {
   return { success: true, roadmap: data[0] }
 }
 
-export async function updateRoadmap(id, name, description, isActive) {
+export async function updateRoadmap(id, name, description, isActive, visibleOrgIds = []) {
   const supabase = await createClient()
 
   if (!name) {
     return { error: 'ロードマップ名を入力してください。' }
   }
 
+  // 1. 基本情報の更新
   const { error } = await supabase
     .from('learning_paths')
     .update({ name, description, is_active: isActive })
@@ -39,6 +40,31 @@ export async function updateRoadmap(id, name, description, isActive) {
 
   if (error) {
     return { error: `ロードマップの更新に失敗しました: ${error.message}` }
+  }
+
+  // 2. 公開組織の同期 (一度全て削除して再登録)
+  const { error: deleteError } = await supabase
+    .from('learning_path_visibility')
+    .delete()
+    .eq('learning_path_id', id)
+
+  if (deleteError) {
+    return { error: `公開組織の更新に失敗しました(削除): ${deleteError.message}` }
+  }
+
+  if (visibleOrgIds && visibleOrgIds.length > 0) {
+    const insertData = visibleOrgIds.map(orgId => ({
+      learning_path_id: id,
+      organization_id: orgId
+    }))
+
+    const { error: insertError } = await supabase
+      .from('learning_path_visibility')
+      .insert(insertData)
+
+    if (insertError) {
+      return { error: `公開組織の更新に失敗しました(追加): ${insertError.message}` }
+    }
   }
 
   revalidatePath('/admin/roadmaps')

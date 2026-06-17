@@ -126,3 +126,36 @@ export async function toggleUserActive(userId, isActive) {
   revalidatePath('/admin/users')
   return { success: true }
 }
+
+export async function assignRoadmapsToUser(userId, roadmapIds = []) {
+  const supabase = await createClient()
+
+  // 1. 既存の割り当てを全て削除
+  const { error: deleteError } = await supabase
+    .from('user_learning_paths')
+    .delete()
+    .eq('user_id', userId)
+
+  if (deleteError) {
+    return { error: `ロードマップ割り当ての更新に失敗しました(削除): ${deleteError.message}` }
+  }
+
+  // 2. 新しい割り当てを登録
+  if (roadmapIds && roadmapIds.length > 0) {
+    const insertData = roadmapIds.map(lpId => ({
+      user_id: userId,
+      learning_path_id: lpId
+    }))
+
+    const { error: insertError } = await supabase
+      .from('user_learning_paths')
+      .insert(insertData)
+
+    if (insertError) {
+      return { error: `ロードマップ割り当ての更新に失敗しました(追加): ${insertError.message}` }
+    }
+  }
+
+  revalidatePath('/admin/users')
+  return { success: true }
+}

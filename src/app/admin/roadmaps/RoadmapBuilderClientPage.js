@@ -11,7 +11,7 @@ import {
 } from './actions'
 import styles from '../admin.module.css'
 
-export default function RoadmapBuilderClientPage({ initialRoadmaps, allCourses }) {
+export default function RoadmapBuilderClientPage({ initialRoadmaps, allCourses, organizations = [] }) {
   const [selectedRoadmapId, setSelectedRoadmapId] = useState(initialRoadmaps[0]?.id || null)
   const [searchQuery, setSearchQuery] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
@@ -60,9 +60,10 @@ export default function RoadmapBuilderClientPage({ initialRoadmaps, allCourses }
     const name = formData.get('name')
     const description = formData.get('description')
     const isActive = formData.get('is_active') === 'true'
+    const visibleOrgIds = formData.getAll('visible_org_ids')
 
     startTransition(async () => {
-      const res = await updateRoadmap(selectedRoadmap.id, name, description, isActive)
+      const res = await updateRoadmap(selectedRoadmap.id, name, description, isActive, visibleOrgIds)
       if (res?.error) {
         setErrorMsg(res.error)
       } else {
@@ -230,6 +231,30 @@ export default function RoadmapBuilderClientPage({ initialRoadmaps, allCourses }
                     <label className={styles.label} htmlFor="roadmap-desc">ロードマップの説明</label>
                     <textarea id="roadmap-desc" name="description" rows="3" defaultValue={selectedRoadmap.description || ''} className={styles.textarea}></textarea>
                   </div>
+
+                  {selectedRoadmap.organization_id === null && (
+                    <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                      <label className={styles.label}>公開対象の組織（テナント）</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem', background: 'rgba(0, 0, 0, 0.2)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                        {organizations.map(org => {
+                          const isChecked = selectedRoadmap.visibility?.includes(org.id)
+                          return (
+                            <label key={org.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#e4e4e7', cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                name="visible_org_ids"
+                                value={org.id}
+                                defaultChecked={isChecked}
+                                style={{ width: '16px', height: '16px', accentColor: 'var(--primary-color)' }}
+                              />
+                              {org.name}
+                            </label>
+                          )
+                        })}
+                      </div>
+                      <span style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '0.25rem' }}>※チェックした組織（テナント）に所属する受講者の画面にのみ、このロードマップが表示されます。</span>
+                    </div>
+                  )}
 
                   <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end' }}>
                     <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={isPending}>

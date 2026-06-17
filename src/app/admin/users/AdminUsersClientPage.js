@@ -2,10 +2,10 @@
 
 import { useState, useActionState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createUser, toggleUserActive } from './actions'
+import { createUser, toggleUserActive, assignRoadmapsToUser } from './actions'
 import styles from '../admin.module.css'
 
-export default function AdminUsersClientPage({ initialUsers, organizations, departments }) {
+export default function AdminUsersClientPage({ initialUsers, organizations, departments, roadmaps = [] }) {
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedOrgFilter, setSelectedOrgFilter] = useState('all')
@@ -14,6 +14,10 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
   const [tempPassword, setTempPassword] = useState('')
   const [invitedEmail, setInvitedEmail] = useState('')
   const [isPending, setIsPending] = useState(false)
+
+  // ロードマップ割り当て管理用 state
+  const [activeAssignUserId, setActiveAssignUserId] = useState(null)
+  const [isAssignPending, setIsAssignPending] = useState(false)
 
   // フォームアクション管理
   const [state, formAction, isFormPending] = useActionState(async (prevState, formData) => {
@@ -52,6 +56,29 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
       }
     }
   }
+
+  // 個人へのロードマップ割り当て保存処理
+  const handleAssignRoadmapsSubmit = async (e) => {
+    e.preventDefault()
+    setIsAssignPending(true)
+    const formData = new FormData(e.target)
+    const roadmapIds = formData.getAll('roadmap_ids')
+
+    const res = await assignRoadmapsToUser(activeAssignUserId, roadmapIds)
+    setIsAssignPending(false)
+    if (res?.error) {
+      alert(res.error)
+    } else {
+      setActiveAssignUserId(null)
+      router.refresh()
+    }
+  }
+
+  const assignUser = activeAssignUserId ? initialUsers.find(u => u.id === activeAssignUserId) : null
+  const filteredRoadmaps = assignUser ? roadmaps.filter(
+    r => r.organization_id === null || r.organization_id === assignUser.organization_id
+  ) : []
+  const currentlyAssignedIds = assignUser?.user_learning_paths?.map(ulp => ulp.learning_path_id) || []
 
   return (
     <div>
@@ -166,14 +193,24 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
                       </span>
                     </td>
                     <td className={styles.td} style={{ textAlign: 'right' }}>
-                      <button
-                        onClick={() => handleToggleStatus(u.id, u.name, u.is_active)}
-                        className={`${styles.btn} ${u.is_active ? styles.btnDanger : styles.btnSecondary}`}
-                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
-                        disabled={isPending}
-                      >
-                        {u.is_active ? '無効化' : '有効化'}
-                      </button>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                        <button
+                          onClick={() => setActiveAssignUserId(u.id)}
+                          className={`${styles.btn} ${styles.btnSecondary}`}
+                          style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                          disabled={isPending || isAssignPending}
+                        >
+                          ロードマップ
+                        </button>
+                        <button
+                          onClick={() => handleToggleStatus(u.id, u.name, u.is_active)}
+                          className={`${styles.btn} ${u.is_active ? styles.btnDanger : styles.btnSecondary}`}
+                          style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                          disabled={isPending || isAssignPending}
+                        >
+                          {u.is_active ? '無効化' : '有効化'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )
@@ -266,6 +303,70 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
                   disabled={isFormPending}
                 >
                   {isFormPending ? '登録中...' : 'ユーザーを登録'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ASSIGN ROADMAP MODAL */}
+      {activeAssignUserId && assignUser && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal} style={{ maxWidth: '550px' }}>
+            <div className={styles.modalHeader}>
+              <div>ロードマップ個別割り当て設定</div>
+              <div style={{ fontSize: '0.85rem', color: '#a1a1aa', fontWeight: '500', marginTop: '0.25rem' }}>
+                対象受講者: <strong>{assignUser.name}</strong> ({organizations.find(o => o.id === assignUser.organization_id)?.name || '所属組織なし'})
+              </div>
+            </div>
+            <form onSubmit={handleAssignRoadmapsSubmit}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>割り当てるロードマップ（複数選択可）</label>
+                {filteredRoadmaps.length === 0 ? (
+                  <span style={{ fontSize: '0.85rem', color: '#71717a', padding: '1rem 0' }}>
+                    このユーザーに公開可能なアクティブなロードマップがありません。
+                  </span>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'rgba(0, 0, 0, 0.2)', padding: '1rem', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.05)', maxHeight: '300px', overflowY: 'auto' }}>
+                    {filteredRoadmaps.map(rm => {
+                      const isChecked = currentlyAssignedIds.includes(rm.id)
+                      const isHq = rm.organization_id === null
+                      return (
+                        <label key={rm.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#e4e4e7', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            name="roadmap_ids"
+                            value={rm.id}
+                            defaultChecked={isChecked}
+                            style={{ width: '16px', height: '16px', accentColor: 'var(--primary-color)' }}
+                          />
+                          <span>{rm.name}</span>
+                          <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.3rem', borderRadius: '4px', background: isHq ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.05)', color: isHq ? '#818cf8' : '#a1a1aa' }}>
+                            {isHq ? '本部共通' : '自組織'}
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  onClick={() => setActiveAssignUserId(null)}
+                  className={`${styles.btn} ${styles.btnSecondary}`}
+                  disabled={isAssignPending}
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  disabled={isAssignPending}
+                >
+                  {isAssignPending ? '保存中...' : '割り当てを保存'}
                 </button>
               </div>
             </form>
