@@ -35,6 +35,7 @@ export default function AdminSidebar() {
     { href: '/admin/mandatory', label: '必須受講管理' },
     { href: '/admin/notifications', label: '通知管理' },
     { href: '/admin/audit-logs', label: '監査ログ' },
+    { href: '/admin/audit-export', label: '監査PDF出力' },
   ]
 
   return (
