@@ -1,0 +1,13 @@
+# 行末コードをLFに正規化（Dropbox同期＋WSL環境でのCRLF churn再発を防止）
+* text=auto eol=lf
+
+# バイナリは変換しない
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.mp4 binary
+*.woff binary
+*.woff2 binary
