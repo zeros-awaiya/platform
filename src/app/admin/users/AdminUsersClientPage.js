@@ -2,24 +2,36 @@
 
 import { useState, useActionState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createUser, toggleUserActive, assignRoadmapsToUser } from './actions'
+import { createUser, updateUser, deleteUser, toggleUserActive, assignRoadmapsToUser } from './actions'
 import styles from '../admin.module.css'
+
+const PAGE_SIZE = 20
 
 export default function AdminUsersClientPage({ initialUsers, organizations, departments, roadmaps = [] }) {
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedOrgFilter, setSelectedOrgFilter] = useState('all')
   const [selectedModalOrgId, setSelectedModalOrgId] = useState('')
-  
+
   const [tempPassword, setTempPassword] = useState('')
   const [invitedEmail, setInvitedEmail] = useState('')
   const [isPending, setIsPending] = useState(false)
+
+  // 検索・ページネーション
+  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(1)
+
+  // 編集モーダル
+  const [editUser, setEditUser] = useState(null)
+  const [editOrgId, setEditOrgId] = useState('')
+  const [isEditPending, setIsEditPending] = useState(false)
+  const [editError, setEditError] = useState('')
 
   // ロードマップ割り当て管理用 state
   const [activeAssignUserId, setActiveAssignUserId] = useState(null)
   const [isAssignPending, setIsAssignPending] = useState(false)
 
-  // フォームアクション管理
+  // フォームアクション管理（新規登録）
   const [state, formAction, isFormPending] = useActionState(async (prevState, formData) => {
     const res = await createUser(prevState, formData)
     if (res?.success) {
@@ -35,12 +47,28 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
   const filteredModalDepartments = departments.filter(
     (d) => d.organization_id === selectedModalOrgId
   )
+  const filteredEditDepartments = departments.filter(
+    (d) => d.organization_id === editOrgId
+  )
 
-  // ユーザー一覧の組織フィルタリング
+  // ユーザー一覧の絞り込み（組織フィルタ＋キーワード検索）
+  const q = searchQuery.trim().toLowerCase()
   const filteredUsers = initialUsers.filter((u) => {
-    if (selectedOrgFilter === 'all') return true
-    return u.organization_id === selectedOrgFilter
+    if (selectedOrgFilter !== 'all' && u.organization_id !== selectedOrgFilter) return false
+    if (!q) return true
+    return (
+      (u.name && u.name.toLowerCase().includes(q)) ||
+      (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.position && u.position.toLowerCase().includes(q))
+    )
   })
+
+  // ページネーション
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pagedUsers = filteredUsers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+  const resetToFirstPage = () => setPage(1)
 
   // 有効/無効トグル
   const handleToggleStatus = async (userId, name, currentStatus) => {
@@ -54,6 +82,49 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
       } else {
         router.refresh()
       }
+    }
+  }
+
+  // 削除
+  const handleDelete = async (userId, name) => {
+    if (confirm(`本当に「${name}」を完全に削除しますか？この操作は取り消せません。`)) {
+      setIsPending(true)
+      const res = await deleteUser(userId)
+      setIsPending(false)
+      if (res?.error) {
+        alert(res.error)
+      } else {
+        router.refresh()
+      }
+    }
+  }
+
+  // 編集モーダルを開く
+  const openEditModal = (u) => {
+    setEditError('')
+    setEditUser(u)
+    setEditOrgId(u.organization_id || '')
+  }
+
+  // 編集保存
+  const handleEditSubmit = async (e) => {
+    e.preventDefault()
+    setEditError('')
+    const formData = new FormData(e.target)
+    setIsEditPending(true)
+    const res = await updateUser(editUser.id, {
+      name: formData.get('name'),
+      role: formData.get('role'),
+      organizationId: formData.get('organizationId'),
+      departmentId: formData.get('departmentId'),
+      position: formData.get('position'),
+    })
+    setIsEditPending(false)
+    if (res?.error) {
+      setEditError(res.error)
+    } else {
+      setEditUser(null)
+      router.refresh()
     }
   }
 
@@ -86,7 +157,7 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#ffffff', marginBottom: '0.25rem' }}>システムユーザー管理</h2>
-          <p style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>プラットフォーム内の全組織に属するユーザー、システム管理者アカウントの追加・無効化を管理します。</p>
+          <p style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>プラットフォーム内の全組織に属するユーザー、システム管理者アカウントの追加・編集・無効化・削除を管理します。</p>
         </div>
         <button
           onClick={() => {
@@ -126,19 +197,33 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <label style={{ fontSize: '0.875rem', color: '#a1a1aa' }}>組織で絞り込み:</label>
-          <select
-            value={selectedOrgFilter}
-            onChange={(e) => setSelectedOrgFilter(e.target.value)}
-            className={styles.select}
-            style={{ width: '240px', padding: '0.5rem' }}
-          >
-            <option value="all">すべての組織</option>
-            {organizations.map(o => (
-              <option key={o.id} value={o.id}>{o.name}</option>
-            ))}
-          </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <label style={{ fontSize: '0.875rem', color: '#a1a1aa' }}>組織で絞り込み:</label>
+            <select
+              value={selectedOrgFilter}
+              onChange={(e) => { setSelectedOrgFilter(e.target.value); resetToFirstPage() }}
+              className={styles.select}
+              style={{ width: '240px', padding: '0.5rem' }}
+            >
+              <option value="all">すべての組織</option>
+              {organizations.map(o => (
+                <option key={o.id} value={o.id}>{o.name}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: '240px' }}>
+            <label style={{ fontSize: '0.875rem', color: '#a1a1aa' }}>検索:</label>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); resetToFirstPage() }}
+              placeholder="氏名・メール・役職で検索"
+              className={styles.input}
+              style={{ flex: 1, padding: '0.5rem', maxWidth: '360px' }}
+            />
+          </div>
+          <span style={{ fontSize: '0.8rem', color: '#71717a' }}>{filteredUsers.length} 件</span>
         </div>
       </div>
 
@@ -151,29 +236,31 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
               <th className={styles.th}>メールアドレス</th>
               <th className={styles.th}>所属組織</th>
               <th className={styles.th}>部署</th>
+              <th className={styles.th}>役職</th>
               <th className={styles.th}>ロール</th>
               <th className={styles.th}>状態</th>
               <th className={styles.th} style={{ textAlign: 'right' }}>操作</th>
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.length === 0 ? (
+            {pagedUsers.length === 0 ? (
               <tr>
-                <td colSpan="7" className={styles.td} style={{ textAlign: 'center', color: '#71717a', padding: '3rem' }}>
+                <td colSpan="8" className={styles.td} style={{ textAlign: 'center', color: '#71717a', padding: '3rem' }}>
                   該当するユーザーが見つかりません。
                 </td>
               </tr>
             ) : (
-              filteredUsers.map((u) => {
+              pagedUsers.map((u) => {
                 const org = organizations.find(o => o.id === u.organization_id)
                 const dept = departments.find(d => d.id === u.department_id)
-                
+
                 return (
                   <tr key={u.id} className={styles.tr}>
                     <td className={styles.td} style={{ fontWeight: '600', color: '#ffffff' }}>{u.name}</td>
                     <td className={styles.td}>{u.email}</td>
                     <td className={styles.td}>{org ? org.name : '本部 / システム外'}</td>
                     <td className={styles.td}>{dept ? dept.name : '-'}</td>
+                    <td className={styles.td}>{u.position || '-'}</td>
                     <td className={styles.td}>
                       <span style={{
                         fontSize: '0.75rem',
@@ -203,12 +290,28 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
                           ロードマップ
                         </button>
                         <button
+                          onClick={() => openEditModal(u)}
+                          className={`${styles.btn} ${styles.btnSecondary}`}
+                          style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                          disabled={isPending || isAssignPending}
+                        >
+                          編集
+                        </button>
+                        <button
                           onClick={() => handleToggleStatus(u.id, u.name, u.is_active)}
                           className={`${styles.btn} ${u.is_active ? styles.btnDanger : styles.btnSecondary}`}
                           style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                           disabled={isPending || isAssignPending}
                         >
                           {u.is_active ? '無効化' : '有効化'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(u.id, u.name)}
+                          className={`${styles.btn} ${styles.btnDanger}`}
+                          style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                          disabled={isPending || isAssignPending}
+                        >
+                          削除
                         </button>
                       </div>
                     </td>
@@ -219,6 +322,29 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
           </tbody>
         </table>
       </div>
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1.25rem' }}>
+          <button
+            className={`${styles.btn} ${styles.btnSecondary}`}
+            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={currentPage <= 1}
+          >
+            前へ
+          </button>
+          <span style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>{currentPage} / {totalPages}</span>
+          <button
+            className={`${styles.btn} ${styles.btnSecondary}`}
+            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages}
+          >
+            次へ
+          </button>
+        </div>
+      )}
 
       {/* 新規登録モーダル */}
       {isModalOpen && (
@@ -303,6 +429,98 @@ export default function AdminUsersClientPage({ initialUsers, organizations, depa
                   disabled={isFormPending}
                 >
                   {isFormPending ? '登録中...' : 'ユーザーを登録'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 編集モーダル */}
+      {editUser && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>ユーザー情報の編集</div>
+            <form onSubmit={handleEditSubmit}>
+              {editError && (
+                <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#fca5a5', padding: '0.75rem 1rem', borderRadius: '12px', fontSize: '0.875rem', marginBottom: '1.25rem' }}>
+                  {editError}
+                </div>
+              )}
+
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="edit-name">氏名 *</label>
+                <input id="edit-name" name="name" type="text" className={styles.input} required defaultValue={editUser.name || ''} />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>メールアドレス</label>
+                <input type="email" className={styles.input} value={editUser.email || ''} disabled readOnly />
+                <span style={{ fontSize: '0.75rem', color: '#71717a' }}>メールアドレスは認証情報と紐づくため、ここでは変更できません。</span>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="edit-organizationId">所属組織 *</label>
+                <select
+                  id="edit-organizationId"
+                  name="organizationId"
+                  required
+                  className={styles.select}
+                  value={editOrgId}
+                  onChange={(e) => setEditOrgId(e.target.value)}
+                >
+                  <option value="">-- 組織を選択してください --</option>
+                  {organizations.map(o => (
+                    <option key={o.id} value={o.id}>{o.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="edit-departmentId">所属部署</label>
+                <select
+                  id="edit-departmentId"
+                  name="departmentId"
+                  disabled={!editOrgId}
+                  className={styles.select}
+                  defaultValue={editUser.department_id || 'none'}
+                >
+                  <option value="none">部署未設定 / 本部直轄</option>
+                  {filteredEditDepartments.map(d => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="edit-role">システム権限</label>
+                <select id="edit-role" name="role" className={styles.select} defaultValue={editUser.role || 'LEARNER'}>
+                  <option value="LEARNER">受講者 (一般ユーザー)</option>
+                  <option value="ORG_ADMIN">組織管理者 (テナント管理者)</option>
+                  <option value="SYSTEM_ADMIN">システム本部管理者</option>
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="edit-position">役職</label>
+                <input id="edit-position" name="position" type="text" className={styles.input} defaultValue={editUser.position || ''} placeholder="例: 看護部長、一般職員" />
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  onClick={() => setEditUser(null)}
+                  className={`${styles.btn} ${styles.btnSecondary}`}
+                  disabled={isEditPending}
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  disabled={isEditPending}
+                >
+                  {isEditPending ? '保存中...' : '変更を保存'}
                 </button>
               </div>
             </form>

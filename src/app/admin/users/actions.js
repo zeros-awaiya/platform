@@ -2,18 +2,14 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { createClient as createServiceRoleClient } from '@supabase/supabase-js'
-
-function getServiceRoleClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseServiceKey) {
-    throw new Error('環境変数 SUPABASE_SERVICE_ROLE_KEY が設定されていません。')
-  }
-  return createServiceRoleClient(supabaseUrl, supabaseServiceKey)
-}
+import { assertRole } from '@/utils/auth/guard'
+import { getAdminClient, isMockMode, provisionUser } from '@/utils/supabase/admin'
 
 export async function createUser(prevState, formData) {
+  // 呼び出し元が本部管理者か検証（service role を使うため特に厳格に）
+  const auth = await assertRole(['SYSTEM_ADMIN'])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const name = formData.get('name')
@@ -28,16 +24,7 @@ export async function createUser(prevState, formData) {
   }
 
   try {
-    // 招待パスワードの自動生成
-    const tempPassword = Math.random().toString(36).slice(-10) + 'A1!'
-
-    const isMockMode = 
-      !process.env.NEXT_PUBLIC_SUPABASE_URL || 
-      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-supabase-project') ||
-      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'your-supabase-anon-key'
-    
-    const adminClient = isMockMode ? supabase : getServiceRoleClient()
+    const adminClient = getAdminClient(supabase)
 
     // 1. public.users でメールアドレスの重複チェック
     const { data: existingProfile } = await supabase
@@ -51,7 +38,7 @@ export async function createUser(prevState, formData) {
     }
 
     // 2. public.users に存在しないが auth.users に残っている（ゴーストアカウント）場合のクリーンアップ
-    if (!isMockMode) {
+    if (!isMockMode()) {
       const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers()
       if (!listError && users) {
         const ghostUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase())
@@ -70,48 +57,104 @@ export async function createUser(prevState, formData) {
       }
     }
 
-    // Auth ユーザーの作成
-    const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
-      email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: { name, organization_id: organizationId }
-    })
-
-    if (authError) {
-      if (authError.message === 'A user with this email address has already been registered') {
-        return { error: 'このメールアドレスは既に登録されています。' }
-      }
-      return { error: `認証アカウント作成失敗: ${authError.message}` }
-    }
-
-    // Profile の作成
-    const { error: profileError } = await supabase
-      .from('users')
-      .insert([{
-        id: authUser.user.id,
-        organization_id: organizationId,
-        department_id: departmentId === 'none' || !departmentId ? null : departmentId,
+    // 3. auth 作成 → profile insert（失敗時ロールバック）
+    const result = await provisionUser({
+      supabase,
+      adminClient,
+      profile: {
         name,
         email,
-        role: role || 'LEARNER',
-        position: position || null,
-        is_active: true
-      }])
+        organization_id: organizationId,
+        department_id: departmentId === 'none' || !departmentId ? null : departmentId,
+        role,
+        position,
+      },
+    })
 
-    if (profileError) {
-      await adminClient.auth.admin.deleteUser(authUser.user.id)
-      return { error: `ユーザープロファイル登録失敗: ${profileError.message}` }
+    if (!result.ok) {
+      if (result.authError?.message === 'A user with this email address has already been registered') {
+        return { error: 'このメールアドレスは既に登録されています。' }
+      }
+      return { error: result.profileError ? `ユーザープロファイル登録失敗: ${result.error}` : `認証アカウント作成失敗: ${result.error}` }
     }
 
     revalidatePath('/admin/users')
-    return { success: true, tempPassword }
+    return { success: true, tempPassword: result.tempPassword }
+  } catch (err) {
+    return { error: err.message }
+  }
+}
+
+export async function updateUser(userId, fields) {
+  const auth = await assertRole(['SYSTEM_ADMIN'])
+  if (!auth.ok) return { error: auth.error }
+
+  const supabase = await createClient()
+
+  const { name, role, organizationId, departmentId, position } = fields || {}
+  if (!name || !organizationId) {
+    return { error: '氏名と対象組織は必須です。' }
+  }
+
+  // メールアドレスは auth と同期が必要なため本UIでは変更不可（profile 項目のみ更新）
+  const { error } = await supabase
+    .from('users')
+    .update({
+      name,
+      role: role || 'LEARNER',
+      organization_id: organizationId,
+      department_id: departmentId === 'none' || !departmentId ? null : departmentId,
+      position: position || null,
+    })
+    .eq('id', userId)
+
+  if (error) {
+    return { error: `更新に失敗しました: ${error.message}` }
+  }
+
+  revalidatePath('/admin/users')
+  return { success: true }
+}
+
+export async function deleteUser(userId) {
+  const auth = await assertRole(['SYSTEM_ADMIN'])
+  if (!auth.ok) return { error: auth.error }
+
+  // 自分自身の削除は禁止（ロックアウト防止）
+  if (auth.profile?.id === userId) {
+    return { error: '自分自身のアカウントは削除できません。' }
+  }
+
+  const supabase = await createClient()
+
+  try {
+    // 1. public.users から削除（user_learning_paths 等は FK CASCADE 想定）
+    const { error: profileError } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userId)
+
+    if (profileError) {
+      return { error: `ユーザー削除に失敗しました: ${profileError.message}` }
+    }
+
+    // 2. auth ユーザーも削除（本番のみ。mock では auth 概念なし）
+    if (!isMockMode()) {
+      const adminClient = getAdminClient(supabase)
+      await adminClient.auth.admin.deleteUser(userId)
+    }
+
+    revalidatePath('/admin/users')
+    return { success: true }
   } catch (err) {
     return { error: err.message }
   }
 }
 
 export async function toggleUserActive(userId, isActive) {
+  const auth = await assertRole(['SYSTEM_ADMIN'])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -128,6 +171,9 @@ export async function toggleUserActive(userId, isActive) {
 }
 
 export async function assignRoadmapsToUser(userId, roadmapIds = []) {
+  const auth = await assertRole(['SYSTEM_ADMIN'])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   // 1. 既存の割り当てを全て削除

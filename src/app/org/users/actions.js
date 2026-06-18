@@ -2,82 +2,52 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
-import { createClient as createServiceRoleClient } from '@supabase/supabase-js'
+import { getAdminClient, provisionUser } from '@/utils/supabase/admin'
 
-// Helper: Service Role Client (For provisioning users securely on server side)
-function getServiceRoleClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  
-  if (!supabaseServiceKey) {
-    throw new Error('環境変数 SUPABASE_SERVICE_ROLE_KEY が設定されていません。')
+// 呼び出し元の ORG_ADMIN 検証（組織IDを返す）
+async function requireOrgAdmin(supabase) {
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  if (!currentUser) return { error: '認証セッションがありません。' }
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('organization_id, role')
+    .eq('id', currentUser.id)
+    .single()
+
+  if (!profile || profile.role !== 'ORG_ADMIN') {
+    return { error: '権限がありません（組織管理者専用）。' }
   }
-  
-  return createServiceRoleClient(supabaseUrl, supabaseServiceKey)
+  return { orgId: profile.organization_id }
 }
 
 export async function inviteUser(email, name, role, departmentId, position) {
   try {
     const supabase = await createClient()
 
-    // 1. Verify that the caller is an ORG_ADMIN
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
-    if (!currentUser) return { error: '認証セッションがありません。' }
+    const gate = await requireOrgAdmin(supabase)
+    if (gate.error) return { error: gate.error }
+    const orgId = gate.orgId
 
-    const { data: profile } = await supabase
-      .from('users')
-      .select('organization_id, role')
-      .eq('id', currentUser.id)
-      .single()
-
-    if (!profile || profile.role !== 'ORG_ADMIN') {
-      return { error: 'ユーザー招待の権限がありません（組織管理者専用）。' }
-    }
-
-    const orgId = profile.organization_id
-
-    // 2. Provision Auth User using Supabase Admin API
-    const isMockMode = 
-      !process.env.NEXT_PUBLIC_SUPABASE_URL || 
-      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-supabase-project') ||
-      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'your-supabase-anon-key'
-    const adminClient = isMockMode ? supabase : getServiceRoleClient()
-    const tempPassword = Math.random().toString(36).slice(-10) + 'A1!' // Secure temporary password
-
-    const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
-      email,
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: { name, organization_id: orgId }
-    })
-
-    if (authError) {
-      return { error: `アカウント認証情報の作成に失敗しました: ${authError.message}` }
-    }
-
-    // 3. Create Public Profile
-    const { error: profileError } = await supabase
-      .from('users')
-      .insert([{
-        id: authUser.user.id,
-        organization_id: orgId,
-        department_id: departmentId || null,
+    const result = await provisionUser({
+      supabase,
+      adminClient: getAdminClient(supabase),
+      profile: {
         name,
         email,
+        organization_id: orgId,
+        department_id: departmentId || null,
         role: role || 'LEARNER',
-        position: position || null,
-        is_active: true
-      }])
+        position,
+      },
+    })
 
-    if (profileError) {
-      // Rollback Auth User if profile creation fails
-      await adminClient.auth.admin.deleteUser(authUser.user.id)
-      return { error: `プロフィール作成に失敗しました: ${profileError.message}` }
+    if (!result.ok) {
+      return { error: result.profileError ? `プロフィール作成に失敗しました: ${result.error}` : `アカウント認証情報の作成に失敗しました: ${result.error}` }
     }
 
     revalidatePath('/org/users')
-    return { success: true, tempPassword }
+    return { success: true, tempPassword: result.tempPassword }
   } catch (err) {
     return { error: err.message }
   }
@@ -87,32 +57,20 @@ export async function toggleUserActive(targetUserId, isActive) {
   try {
     const supabase = await createClient()
 
-    // 1. Verify caller is ORG_ADMIN
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
-    if (!currentUser) return { error: '認証セッションがありません。' }
+    const gate = await requireOrgAdmin(supabase)
+    if (gate.error) return { error: gate.error }
 
-    const { data: profile } = await supabase
-      .from('users')
-      .select('organization_id, role')
-      .eq('id', currentUser.id)
-      .single()
-
-    if (!profile || profile.role !== 'ORG_ADMIN') {
-      return { error: '権限がありません。' }
-    }
-
-    // 2. Verify target user belongs to the same organization
+    // 対象ユーザーが自組織に属するか検証
     const { data: targetUser } = await supabase
       .from('users')
       .select('organization_id')
       .eq('id', targetUserId)
       .single()
 
-    if (!targetUser || targetUser.organization_id !== profile.organization_id) {
+    if (!targetUser || targetUser.organization_id !== gate.orgId) {
       return { error: '対象のユーザーが自組織に見つかりません。' }
     }
 
-    // 3. Update public.users status
     const { error } = await supabase
       .from('users')
       .update({ is_active: isActive })
@@ -133,26 +91,13 @@ export async function importUsersFromCSV(usersList) {
   try {
     const supabase = await createClient()
 
-    // 1. Verify caller is ORG_ADMIN
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
-    if (!currentUser) return { error: '認証セッションがありません。' }
+    const gate = await requireOrgAdmin(supabase)
+    if (gate.error) return { error: gate.error }
+    const orgId = gate.orgId
 
-    const { data: profile } = await supabase
-      .from('users')
-      .select('organization_id, role')
-      .eq('id', currentUser.id)
-      .single()
-
-    if (!profile || profile.role !== 'ORG_ADMIN') {
-      return { error: '一括インポートの権限がありません（組織管理者専用）。' }
-    }
-
-    const orgId = profile.organization_id
-
-    // 2. Extract unique department names from CSV list
+    // CSV から部署名を抽出
     const deptNames = [...new Set(usersList.map(u => u.departmentName).filter(Boolean))]
 
-    // Fetch existing departments for this org
     const { data: existingDepts } = await supabase
       .from('departments')
       .select('id, name')
@@ -165,15 +110,12 @@ export async function importUsersFromCSV(usersList) {
       })
     }
 
-    // Auto-create missing departments
+    // 不足している部署を自動作成
     for (const dName of deptNames) {
       if (!deptMap[dName]) {
         const { data: newDept, error: deptErr } = await supabase
           .from('departments')
-          .insert({
-            organization_id: orgId,
-            name: dName
-          })
+          .insert({ organization_id: orgId, name: dName })
           .select('id')
           .single()
 
@@ -184,55 +126,32 @@ export async function importUsersFromCSV(usersList) {
       }
     }
 
-    // 3. Loop and import users
-    const isMockMode = 
-      !process.env.NEXT_PUBLIC_SUPABASE_URL || 
-      process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-supabase-project') ||
-      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'your-supabase-anon-key'
-    const adminClient = isMockMode ? supabase : getServiceRoleClient()
-
+    // ユーザーを一括プロビジョニング
+    const adminClient = getAdminClient(supabase)
     const importedUsers = []
     const failedUsers = []
 
     for (const u of usersList) {
       const { name, email, departmentName, position } = u
       const departmentId = departmentName ? deptMap[departmentName] : null
-      const tempPassword = Math.random().toString(36).slice(-10) + 'A1!'
 
-      // Create Auth User
-      const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
-        email,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: { name, organization_id: orgId }
-      })
-
-      if (authError) {
-        failedUsers.push({ email, name, error: authError.message })
-        continue
-      }
-
-      // Create Profile
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert([{
-          id: authUser.user.id,
-          organization_id: orgId,
-          department_id: departmentId,
+      const result = await provisionUser({
+        supabase,
+        adminClient,
+        profile: {
           name,
           email,
+          organization_id: orgId,
+          department_id: departmentId,
           role: 'LEARNER',
-          position: position || null,
-          is_active: true
-        }])
+          position,
+        },
+      })
 
-      if (profileError) {
-        // Rollback Auth User
-        await adminClient.auth.admin.deleteUser(authUser.user.id)
-        failedUsers.push({ email, name, error: profileError.message })
+      if (!result.ok) {
+        failedUsers.push({ email, name, error: result.error })
       } else {
-        importedUsers.push({ email, name, tempPassword })
+        importedUsers.push({ email, name, tempPassword: result.tempPassword })
       }
     }
 
@@ -242,7 +161,7 @@ export async function importUsersFromCSV(usersList) {
       importedCount: importedUsers.length,
       failedCount: failedUsers.length,
       importedUsers,
-      failedUsers
+      failedUsers,
     }
   } catch (err) {
     return { error: err.message }

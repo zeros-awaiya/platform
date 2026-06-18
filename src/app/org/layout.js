@@ -1,12 +1,16 @@
 import OrgSidebar from './OrgSidebar'
 import styles from './org.module.css'
+import { requireRole } from '@/utils/auth/guard'
 
 export const metadata = {
   title: 'あわい屋ZEROS - 組織管理',
   description: '組織向けロードマップ型学習プラットフォーム 組織管理者ダッシュボード',
 }
 
-export default function OrgLayout({ children }) {
+export default async function OrgLayout({ children }) {
+  // 組織管理は ORG_ADMIN（本部 SYSTEM_ADMIN も閲覧可）。それ以外はリダイレクト
+  await requireRole(['ORG_ADMIN', 'SYSTEM_ADMIN'])
+
   return (
     <div className={styles.layout}>
       {/* Responsive Sidebar & Mobile Navigation */}
