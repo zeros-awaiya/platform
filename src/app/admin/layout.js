@@ -1,12 +1,16 @@
 import AdminSidebar from './AdminSidebar'
 import styles from './admin.module.css'
+import { requireRole } from '@/utils/auth/guard'
 
 export const metadata = {
   title: 'あわい屋ZEROS - 本部管理',
   description: '組織向けロードマップ型学習プラットフォーム 本部管理者ダッシュボード',
 }
 
-export default function AdminLayout({ children }) {
+export default async function AdminLayout({ children }) {
+  // 本部管理は SYSTEM_ADMIN のみ。未認証/権限不足はリダイレクト（RLS単層依存を解消）
+  await requireRole(['SYSTEM_ADMIN'])
+
   return (
     <div className={styles.layout}>
       {/* Responsive Sidebar & Mobile Navigation */}

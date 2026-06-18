@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createClient as createServiceRoleClient } from '@supabase/supabase-js'
+import { assertRole } from '@/utils/auth/guard'
 
 function getServiceRoleClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -14,6 +15,10 @@ function getServiceRoleClient() {
 }
 
 export async function createUser(prevState, formData) {
+  // 呼び出し元が本部管理者か検証（service role を使うため特に厳格に）
+  const auth = await assertRole(['SYSTEM_ADMIN'])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const name = formData.get('name')
@@ -112,6 +117,9 @@ export async function createUser(prevState, formData) {
 }
 
 export async function toggleUserActive(userId, isActive) {
+  const auth = await assertRole(['SYSTEM_ADMIN'])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -128,6 +136,9 @@ export async function toggleUserActive(userId, isActive) {
 }
 
 export async function assignRoadmapsToUser(userId, roadmapIds = []) {
+  const auth = await assertRole(['SYSTEM_ADMIN'])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   // 1. 既存の割り当てを全て削除
