@@ -1,6 +1,6 @@
-import crypto from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { getServiceRoleClient } from '@/utils/supabase/admin'
+import { verifyIntegrationToken } from '@/utils/integrationAuth'
 
 // 外部（ZEROS-AI 診断）からのロードマップ割当連携。
 // セッション無しのため RLS をバイパスする service_role を使用する。
@@ -14,36 +14,18 @@ const BAND_TO_LEARNING_PATH_ID = {
   L3: 'e2030000-0000-4000-8000-000000000000',
 }
 
-// 定数時間比較。長さ不一致でもタイミングを漏らさない。
-function safeTokenEquals(provided, expected) {
-  const a = Buffer.from(provided, 'utf8')
-  const b = Buffer.from(expected, 'utf8')
-  // timingSafeEqual は同長必須。両者を同長に正規化してから比較し、
-  // 長さ一致も timingSafeEqual の結果に AND する。
-  const len = Math.max(a.length, b.length)
-  const pa = Buffer.alloc(len)
-  const pb = Buffer.alloc(len)
-  a.copy(pa)
-  b.copy(pb)
-  return crypto.timingSafeEqual(pa, pb) && a.length === b.length
-}
-
 function json(status, body) {
   return NextResponse.json(body, { status })
 }
 
 export async function POST(request) {
   // 1. トークン検証（設定不備は隠さず 500）
-  const expected = process.env.INTEGRATION_TOKEN
-  if (!expected) {
-    console.error('[assign-roadmap] INTEGRATION_TOKEN が未設定です（設定不備）。')
-    return json(500, { status: 'error', message: 'integration token not configured' })
-  }
-
-  const authHeader = request.headers.get('authorization') || ''
-  const provided = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
-  if (!provided || !safeTokenEquals(provided, expected)) {
-    return json(401, { status: 'error', message: 'unauthorized' })
+  const auth = verifyIntegrationToken(request)
+  if (!auth.ok) {
+    if (auth.status === 500) {
+      console.error('[assign-roadmap] INTEGRATION_TOKEN が未設定です（設定不備）。')
+    }
+    return json(auth.status, { status: 'error', message: auth.message })
   }
 
   // 2. body parse / バリデーション
