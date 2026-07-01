@@ -7,7 +7,7 @@ import { createClient } from '@/utils/supabase/server'
 export async function login(prevState, formData) {
   const supabase = await createClient()
 
-  const email = formData.get('email')
+  const email = formData.get('email')?.trim()
   const password = formData.get('password')
 
   if (!email || !password) {

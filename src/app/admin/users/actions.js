@@ -13,7 +13,7 @@ export async function createUser(prevState, formData) {
   const supabase = await createClient()
 
   const name = formData.get('name')
-  const email = formData.get('email')
+  const email = formData.get('email')?.trim()
   const organizationId = formData.get('organizationId')
   const departmentId = formData.get('departmentId')
   const role = formData.get('role')
