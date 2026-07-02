@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>研修体系 & スキルマップ 図解（充足度・補充版）</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  body{font-family:"Yu Gothic UI","Meiryo","Noto Sans JP",sans-serif;background:#fff;margin:0;padding:24px;color:#1f2937;}
+  .card{border:1px solid #e5e7eb;border-radius:12px;padding:20px 24px;margin:0 auto 28px;max-width:1180px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  h2{font-size:18px;margin:0 0 4px;color:#0f172a;border-left:6px solid #2563eb;padding-left:10px;}
+  p.sub{margin:0 0 14px;color:#64748b;font-size:13px;}
+  .mermaid{display:flex;justify-content:center;}
+  table{border-collapse:collapse;margin:6px auto;font-size:13px;}
+  th,td{border:1px solid #e5e7eb;padding:6px 9px;text-align:center;}
+  th{background:#f1f5f9;}
+  td.rowh{text-align:left;white-space:nowrap;font-weight:600;background:#f8fafc;}
+  /* coverage classes */
+  .full{background:#15803d;color:#fff;}      /* ◎ 既存充実 */
+  .one{background:#86efac;color:#14532d;}     /* ○ 既存あり */
+  .part{background:#fde68a;color:#78350f;}     /* △ 一部・隣接 */
+  .gap{background:#fb923c;color:#fff;font-weight:700;} /* ＋ 補充必要 */
+  .na{background:#fff;color:#cbd5e1;}          /* — 対象外 */
+  .mt{background:#0d9488;color:#fff;}          /* 専門=職種必須 */
+  /* heatmap level classes */
+  .l1{background:#dbeafe;} .l2{background:#93c5fd;} .l3{background:#3b82f6;color:#fff;}
+  .l4{background:#1d4ed8;color:#fff;} .l5{background:#1e3a8a;color:#fff;}
+  .sk-gap{background:#fff7ed;color:#9a3412;border-left:4px solid #f97316;}
+  .legend{font-size:12px;color:#475569;text-align:center;margin-top:10px;}
+  .legend span{display:inline-block;padding:2px 9px;margin:3px;border-radius:4px;}
+  /* gap panel */
+  .gaps{max-width:1100px;margin:6px auto;}
+  .gaprow{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border:1px solid #fed7aa;border-radius:8px;margin-bottom:8px;background:#fff7ed;}
+  .pri{flex:0 0 auto;font-weight:700;border-radius:6px;padding:3px 8px;font-size:12px;color:#fff;}
+  .p3{background:#dc2626;} .p2{background:#f97316;} .p1{background:#fbbf24;color:#78350f;}
+  .gtitle{font-weight:700;color:#7c2d12;}
+  .gmeta{color:#9a3412;font-size:12px;}
+  .tag{display:inline-block;background:#e0f2fe;color:#0369a1;border-radius:10px;padding:1px 8px;font-size:11px;margin-left:4px;}
+</style>
+</head>
+<body>
+
+<div class="card" id="c1">
+  <h2>図1　全体俯瞰：既存を活かし、足りない所を補う</h2>
+  <p class="sub">既存コースを地図に配置 → 空白セル＝補充候補 → コースがスキルを伸ばす循環</p>
+  <div class="mermaid">
+flowchart TB
+  subgraph TF["研修体系（地図）= 等級 × 9領域"]
+    direction LR
+    EX["■ 既存コース約90本を配置<br/>（L0.1〜L3 ＋ MT ＋ テーマトラック）"]
+    GAP2["□ 空白セル = 補充候補<br/>（全社ハラ/情セキ/コンプラ 等）"]
+    EX --- GAP2
+  end
+  subgraph SM["スキルマップ"]
+    T["スキル × 等級 ターゲット (L1〜L5)"]
+    COV["コース充足度<br/>◎既存 / △一部 / ＋要補充"]
+    T --- COV
+  end
+  EX -- "伸ばす" --> T
+  COV -- "＋セルに新規コース" --> GAP2
+  classDef ex fill:#dcfce7,stroke:#15803d,color:#14532d;
+  classDef gp fill:#ffedd5,stroke:#ea580c,color:#7c2d12;
+  classDef sm fill:#eff6ff,stroke:#2563eb,color:#1e3a8a;
+  class EX ex; class GAP2 gp; class T,COV sm;
+  </div>
+</div>
+
+<div class="card" id="c2">
+  <h2>図2　充足度マップ（領域 × 等級）── 既存の厚み と 補充ポイント</h2>
+  <p class="sub">緑＝既存で充足／黄＝一部・隣接でカバー／橙＝補充が必要な空白セル</p>
+  <table>
+    <tr><th>領域 ＼ 等級</th><th>G0 新人</th><th>G1 前夜</th><th>G2 主任</th><th>G3 管理</th><th>G4 経営</th><th>補充の要否</th></tr>
+    <tr><td class="rowh">① セルフ・倫理</td><td class="full">◎</td><td class="full">◎</td><td class="part">△</td><td class="part">△</td><td class="part">△</td><td class="gap">＋ メンタルヘルス</td></tr>
+    <tr><td class="rowh">② 対人・コミュ</td><td class="part">△</td><td class="one">○</td><td class="part">△</td><td class="one">○</td><td class="part">△</td><td class="gap">＋ D&I / カスハラ</td></tr>
+    <tr><td class="rowh">③ 人材育成・チーム</td><td class="na">—</td><td class="one">○</td><td class="full">◎</td><td class="full">◎</td><td class="full">◎</td><td class="one">充足</td></tr>
+    <tr><td class="rowh">④ 業務マネジメント</td><td class="one">○</td><td class="one">○</td><td class="full">◎</td><td class="full">◎</td><td class="part">△</td><td class="one">概ね充足</td></tr>
+    <tr><td class="rowh">⑤ 計数・会計</td><td class="gap">＋</td><td class="full">◎</td><td class="full">◎</td><td class="full">◎</td><td class="full">◎</td><td class="part">△ G0財務基礎</td></tr>
+    <tr><td class="rowh">⑥ 法令・リスク</td><td class="gap">＋</td><td class="gap">＋</td><td class="part">△</td><td class="full">◎</td><td class="full">◎</td><td class="gap">＋＋ 最大の穴</td></tr>
+    <tr><td class="rowh">⑦ 専門（医療・介護）</td><td class="mt">◎*</td><td class="mt">◎*</td><td class="mt">◎*</td><td class="mt">◎*</td><td class="mt">◎*</td><td class="one">MT職種必須</td></tr>
+    <tr><td class="rowh">⑧ DX・AI活用</td><td class="gap">＋</td><td class="part">△</td><td class="one">○</td><td class="one">○</td><td class="one">○</td><td class="gap">＋ 基礎/ガバナンス</td></tr>
+    <tr><td class="rowh">⑨ 経営・戦略</td><td class="na">—</td><td class="one">○</td><td class="one">○</td><td class="full">◎</td><td class="full">◎</td><td class="one">充足</td></tr>
+  </table>
+  <div class="legend">
+    <span class="full">◎ 既存で充足(複数本)</span><span class="one">○ 既存あり</span><span class="part">△ 一部/隣接でカバー</span><span class="gap">＋ 補充が必要</span><span class="mt">◎* MTで職種必須</span><span class="na">— 対象外</span>
+  </div>
+</div>
+
+<div class="card" id="c3">
+  <h2>図3　スキル × 等級（到達ターゲット ＋ 既存コース充足）</h2>
+  <p class="sub">中央＝到達レベル(L1〜L5)。右端「既存コース」列で◎○△＋を表示。橙ラベルの行＝新規コースが必要なスキル</p>
+  <table>
+    <tr><th>スキル ＼ 等級</th><th>G0</th><th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>既存コース</th></tr>
+    <tr><td class="rowh">S-SELF-1 自己管理</td><td class="l2">L2</td><td class="l3">L3</td><td class="l3">L3</td><td class="l4">L4</td><td class="l4">L4</td><td class="full">◎</td></tr>
+    <tr><td class="rowh sk-gap">S-SELF-3 メンタルヘルス</td><td class="l2">L2</td><td class="l2">L2</td><td class="l2">L2</td><td class="l3">L3</td><td class="l3">L3</td><td class="gap">＋ 新規</td></tr>
+    <tr><td class="rowh">S-COMM-1 接遇・傾聴</td><td class="l2">L2</td><td class="l3">L3</td><td class="l3">L3</td><td class="l4">L4</td><td class="l4">L4</td><td class="full">◎</td></tr>
+    <tr><td class="rowh sk-gap">S-COMM-3 D&I/バイアス</td><td class="na">—</td><td class="na">—</td><td class="l2">L2</td><td class="l3">L3</td><td class="l3">L3</td><td class="gap">＋ 新規</td></tr>
+    <tr><td class="rowh">S-PEOPLE-1 動機づけ1on1</td><td class="na">—</td><td class="l1">L1</td><td class="l3">L3</td><td class="l4">L4</td><td class="l4">L4</td><td class="full">◎</td></tr>
+    <tr><td class="rowh">S-PEOPLE-2 目標管理</td><td class="na">—</td><td class="na">—</td><td class="l2">L2</td><td class="l4">L4</td><td class="l4">L4</td><td class="part">△ G2薄</td></tr>
+    <tr><td class="rowh">S-PEOPLE-3 後継者育成</td><td class="na">—</td><td class="na">—</td><td class="na">—</td><td class="l3">L3</td><td class="l5">L5</td><td class="full">◎</td></tr>
+    <tr><td class="rowh">S-OPS-1 進捗管理</td><td class="l1">L1</td><td class="l2">L2</td><td class="l4">L4</td><td class="l4">L4</td><td class="l3">L3</td><td class="full">◎</td></tr>
+    <tr><td class="rowh">S-FIN-1 計数感覚</td><td class="l1">L1</td><td class="l1">L1</td><td class="l2">L2</td><td class="l3">L3</td><td class="l4">L4</td><td class="part">△ G0薄</td></tr>
+    <tr><td class="rowh">S-FIN-2 予実管理</td><td class="na">—</td><td class="na">—</td><td class="l1">L1</td><td class="l4">L4</td><td class="l4">L4</td><td class="full">◎</td></tr>
+    <tr><td class="rowh">S-FIN-3 管理会計</td><td class="na">—</td><td class="na">—</td><td class="na">—</td><td class="l3">L3</td><td class="l5">L5</td><td class="full">◎</td></tr>
+    <tr><td class="rowh">S-COMP-1 労務・労基法</td><td class="l1">L1</td><td class="l1">L1</td><td class="l3">L3</td><td class="l4">L4</td><td class="l4">L4</td><td class="part">△ G0/G1薄</td></tr>
+    <tr><td class="rowh sk-gap">S-COMP-3 ハラスメント防止(全社)</td><td class="l2">L2</td><td class="l2">L2</td><td class="l3">L3</td><td class="l4">L4</td><td class="l4">L4</td><td class="gap">＋ 新規★★★</td></tr>
+    <tr><td class="rowh sk-gap">S-COMP-4 情報セキュリティ(全社)</td><td class="l2">L2</td><td class="l2">L2</td><td class="l3">L3</td><td class="l3">L3</td><td class="l4">L4</td><td class="gap">＋ 新規★★★</td></tr>
+    <tr><td class="rowh sk-gap">S-COMP-2 コンプラ・倫理基礎</td><td class="l2">L2</td><td class="l2">L2</td><td class="l3">L3</td><td class="l3">L3</td><td class="l4">L4</td><td class="gap">＋ 新規★★★</td></tr>
+    <tr><td class="rowh">S-COMP-5 危機管理・BCP</td><td class="na">—</td><td class="na">—</td><td class="l2">L2</td><td class="l3">L3</td><td class="l5">L5</td><td class="part">△ 全社版</td></tr>
+    <tr><td class="rowh">S-STR-1 環境分析</td><td class="na">—</td><td class="na">—</td><td class="l2">L2</td><td class="l3">L3</td><td class="l4">L4</td><td class="full">◎</td></tr>
+    <tr><td class="rowh">S-STR-2 経営戦略</td><td class="na">—</td><td class="na">—</td><td class="na">—</td><td class="l2">L2</td><td class="l5">L5</td><td class="full">◎</td></tr>
+    <tr><td class="rowh sk-gap">S-DX-1 AI活用</td><td class="l1">L1</td><td class="l2">L2</td><td class="l2">L2</td><td class="l3">L3</td><td class="l3">L3</td><td class="part">△ 基礎/規程薄</td></tr>
+  </table>
+  <div class="legend">
+    到達: <span class="l1">L1認知</span><span class="l2">L2実践</span><span class="l3">L3自立</span><span class="l4">L4指導</span><span class="l5">L5変革</span>
+    　既存: <span class="full">◎充実</span><span class="part">△一部</span><span class="gap">＋要補充</span>　／　S-CARE-*(専門)はMTで職種必須＝別軸
+  </div>
+</div>
+
+<div class="card" id="c4">
+  <h2>図4　補充候補リスト（優先度つき）── どの空白セルを、いつ埋めるか</h2>
+  <p class="sub">既存に薄い「全業種で社会的に必須の基盤研修」。★が多いほど優先（法令系を最優先）</p>
+  <div class="gaps">
+    <div class="gaprow"><div class="pri p3">★★★</div><div><span class="gtitle">ハラスメント防止（全社版）</span><span class="tag">⑥法令</span><span class="tag">G0〜G2</span><br/><span class="gmeta">パワハラ防止法（中小も義務）。MTは医療介護向け → 全社共通版が必要</span></div></div>
+    <div class="gaprow"><div class="pri p3">★★★</div><div><span class="gtitle">情報セキュリティ・個人情報保護（全社版）</span><span class="tag">⑥/⑧</span><span class="tag">全等級</span><br/><span class="gmeta">改正個情法。MT個人情報は医療文脈中心のため全社版を新設</span></div></div>
+    <div class="gaprow"><div class="pri p3">★★★</div><div><span class="gtitle">コンプライアンス・ビジネス倫理 基礎</span><span class="tag">⑥法令</span><span class="tag">G0〜G2</span><br/><span class="gmeta">内部統制・公益通報者保護。新人〜主任の土台が空白</span></div></div>
+    <div class="gaprow"><div class="pri p2">★★</div><div><span class="gtitle">メンタルヘルス・セルフケア</span><span class="tag">①自己</span><span class="tag">全等級</span><br/><span class="gmeta">労働安全衛生法（ストレスチェック義務）</span></div></div>
+    <div class="gaprow"><div class="pri p2">★★</div><div><span class="gtitle">安全衛生・労働災害防止</span><span class="tag">⑥法令</span><span class="tag">現場系</span><br/><span class="gmeta">安衛法。職種横断の基礎</span></div></div>
+    <div class="gaprow"><div class="pri p2">★★</div><div><span class="gtitle">ダイバーシティ＆インクルージョン / 無意識バイアス</span><span class="tag">②対人</span><span class="tag">G2〜G4</span><br/><span class="gmeta">多様性経営・女性活躍・障害者雇用</span></div></div>
+    <div class="gaprow"><div class="pri p2">★★</div><div><span class="gtitle">AIリテラシー基礎</span><span class="tag">⑧DX</span><span class="tag">G0〜G1</span><br/><span class="gmeta">AI活用トラックの入口。新人〜前夜の基礎を補強</span></div></div>
+    <div class="gaprow"><div class="pri p1">★</div><div><span class="gtitle">全社BCP（事業継続）</span><span class="tag">⑥法令</span><span class="tag">G3〜G4</span><br/><span class="gmeta">MT災害BCPは介護向け → 経営の全社版</span></div></div>
+    <div class="gaprow"><div class="pri p1">★</div><div><span class="gtitle">カスタマーハラスメント対応</span><span class="tag">②/⑥</span><span class="tag">現場・管理</span><br/><span class="gmeta">厚労省マニュアル。近年の社会課題</span></div></div>
+    <div class="gaprow"><div class="pri p1">★</div><div><span class="gtitle">AIガバナンス・生成AI利用規程</span><span class="tag">⑧/⑥</span><span class="tag">G2〜G4</span><br/><span class="gmeta">AI活用の「守り」側</span></div></div>
+    <div class="gaprow"><div class="pri p1">★</div><div><span class="gtitle">財務リテラシー基礎（非管理職向け）</span><span class="tag">⑤計数</span><span class="tag">G0〜G1</span><br/><span class="gmeta">計数感覚の底上げ。⑤のG0空白を埋める</span></div></div>
+  </div>
+</div>
+
+<div class="card" id="c5">
+  <h2>図5　等級の階段 ＋ 専門職レイヤー（直交）</h2>
+  <p class="sub">既存L0.1〜L3がそのまま縦軸。MT医療・介護は等級と直交し職種で全員必須</p>
+  <div class="mermaid">
+flowchart LR
+  G0["G0 新人<br/>L0.1 社会人基礎"] --> G1["G1 前夜<br/>L0.7 信頼/役割転換"]
+  G1 --> G2["G2 主任<br/>L1 進捗/予算/労基"]
+  G2 --> G3["G3 管理<br/>L2 予実/MBO/就業規則"]
+  G3 --> G4["G4 経営<br/>L3 戦略/管理会計/経営責任"]
+  P["専門職レイヤー P ＝ MT 医療・介護（職種で全員必須）<br/>医療安全 / 感染対策 / 虐待防止 / 身体拘束適正化 / 看取り"]
+  P -.横断必須.- G0
+  P -.横断必須.- G4
+  classDef g fill:#eff6ff,stroke:#2563eb,color:#1e3a8a;
+  classDef p fill:#f0fdfa,stroke:#0d9488,color:#134e4a;
+  class G0,G1,G2,G3,G4 g; class P p;
+  </div>
+</div>
+
+<div class="card" id="c6">
+  <h2>図6　データモデル（ER）</h2>
+  <p class="sub">既存テーブル（courses/users/categories）は変更せず「加算」のみ</p>
+  <div class="mermaid">
+erDiagram
+  skill_domains ||--o{ skills : contains
+  grades ||--o{ skill_grade_targets : defines
+  skills ||--o{ skill_grade_targets : defines
+  skills ||--o{ course_skills : "伸ばす"
+  courses ||--o{ course_skills : "紐付け"
+  skills ||--o{ user_skills : "現在地"
+  users ||--o{ user_skills : has
+  courses ||--o{ enrollments : 受講
+  grades }o--|| categories : "対応(Lx)"
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({startup:true, theme:"default", securityLevel:"loose", flowchart:{htmlLabels:true, curve:"basis"}});
+</script>
+</body>
+</html>
