@@ -1,7 +1,7 @@
 -- =====================================================================
 -- あわい屋ZEROS  動画レッスン一本化＋資料付与 consolidation seed  2026-06-25
 -- 方針(ユーザー確定):
---  ・動画と本編記事が並存するコース(CC / L0.1 / CB)は【本編記事を削除して動画に一本化】し、
+--  ・動画と本編記事が並存するコース(CC / L0.1 / CB / NG)は【本編記事を削除して動画に一本化】し、
 --    スライドPDF＋ワークシートを【動画レッスン】に付与（上部に資料を出す）。
 --  ・video中心コース(L1/L2/L3/MT/L07)は【各動画レッスンにもコース資料を付与】。
 -- 実行順序: 他の全seed（catalog/lessons/video_lessons/quiz/material_urls/thumbnails）を流した後、最後にこれを流す。
@@ -10,6 +10,8 @@
 -- 別途ストレージ作業(ZEROS): CBワークシート worksheets/CB-0X_worksheet.docx を要アップロード（下のURLが有効化される）。
 --                            AI スライド slides/AI-0X_slides.pdf ＋ ワークシート worksheets/AI-0X_worksheet.docx を要アップロード（PART A4のURLが有効化される。
 --                            素材は 01_動画作成…/output/pf_upload/AI/slides|worksheets に統一名で用意済み）。
+--                            NG ワークシート worksheets/NG-0X_worksheet.docx を要アップロード（PART A5のURLが有効化される。
+--                            素材は 03_教育コース工場…/05_outputs/NG_0X_*_実践ワークシート.docx にあり、要リネームしてアップロード）。
 --                            L07-D の slide/worksheet 素材は未作成（別途）。
 -- =====================================================================
 
@@ -50,6 +52,27 @@ UPDATE public.lessons SET worksheet_word_url='https://wrunobvmzghzwwjtlqry.supab
 
 -- 本編article削除（CB）
 DELETE FROM public.lessons WHERE id IN ('b0cb0100-0000-4000-8000-000000000000','b0cb0200-0000-4000-8000-000000000000','b0cb0300-0000-4000-8000-000000000000','b0cb0400-0000-4000-8000-000000000000','b0cb0500-0000-4000-8000-000000000000','b0cb0600-0000-4000-8000-000000000000','b0cb0700-0000-4000-8000-000000000000','b0cb0800-0000-4000-8000-000000000000','b0cb0900-0000-4000-8000-000000000000');
+
+-- ───────── PART A5: NG（調整交渉術・1コース9本）本編→動画 一本化 ─────────
+-- NGはCBと同型（スライドPDF無し・読み物＋動画）。ワークシートのみ付与（※worksheets/NG-0X_worksheet.docx を要アップロード）。動画を先頭(sort 1〜9)へ。
+-- 前提: seed_ng_video_lessons.sql を流した後（動画レッスン b0e90X50 が存在）に、この consolidation を流すこと。
+-- 注意: 本編article(b0e90100〜0900)に lesson_progress が既にあると、削除時にトリガー(trg_update_course_enrollment_progress)が
+--       cascade削除のlesson_progress行ごとに発火し、その時点でlessons行が既に消えているためcourse_id NULLでenrollments NOT NULL違反になる。
+--       → 先にlesson_progressを明示的に削除してから、本編lessonsを削除する（下の順で実行）。
+DELETE FROM public.lesson_progress WHERE lesson_id IN ('b0e90100-0000-4000-8000-000000000000','b0e90200-0000-4000-8000-000000000000','b0e90300-0000-4000-8000-000000000000','b0e90400-0000-4000-8000-000000000000','b0e90500-0000-4000-8000-000000000000','b0e90600-0000-4000-8000-000000000000','b0e90700-0000-4000-8000-000000000000','b0e90800-0000-4000-8000-000000000000','b0e90900-0000-4000-8000-000000000000');
+
+UPDATE public.lessons SET worksheet_word_url='https://wrunobvmzghzwwjtlqry.supabase.co/storage/v1/object/public/course-materials/worksheets/NG-01_worksheet.docx', sort_order=1 WHERE id='b0e90150-0000-4000-8000-000000000000';
+UPDATE public.lessons SET worksheet_word_url='https://wrunobvmzghzwwjtlqry.supabase.co/storage/v1/object/public/course-materials/worksheets/NG-02_worksheet.docx', sort_order=2 WHERE id='b0e90250-0000-4000-8000-000000000000';
+UPDATE public.lessons SET worksheet_word_url='https://wrunobvmzghzwwjtlqry.supabase.co/storage/v1/object/public/course-materials/worksheets/NG-03_worksheet.docx', sort_order=3 WHERE id='b0e90350-0000-4000-8000-000000000000';
+UPDATE public.lessons SET worksheet_word_url='https://wrunobvmzghzwwjtlqry.supabase.co/storage/v1/object/public/course-materials/worksheets/NG-04_worksheet.docx', sort_order=4 WHERE id='b0e90450-0000-4000-8000-000000000000';
+UPDATE public.lessons SET worksheet_word_url='https://wrunobvmzghzwwjtlqry.supabase.co/storage/v1/object/public/course-materials/worksheets/NG-05_worksheet.docx', sort_order=5 WHERE id='b0e90550-0000-4000-8000-000000000000';
+UPDATE public.lessons SET worksheet_word_url='https://wrunobvmzghzwwjtlqry.supabase.co/storage/v1/object/public/course-materials/worksheets/NG-06_worksheet.docx', sort_order=6 WHERE id='b0e90650-0000-4000-8000-000000000000';
+UPDATE public.lessons SET worksheet_word_url='https://wrunobvmzghzwwjtlqry.supabase.co/storage/v1/object/public/course-materials/worksheets/NG-07_worksheet.docx', sort_order=7 WHERE id='b0e90750-0000-4000-8000-000000000000';
+UPDATE public.lessons SET worksheet_word_url='https://wrunobvmzghzwwjtlqry.supabase.co/storage/v1/object/public/course-materials/worksheets/NG-08_worksheet.docx', sort_order=8 WHERE id='b0e90850-0000-4000-8000-000000000000';
+UPDATE public.lessons SET worksheet_word_url='https://wrunobvmzghzwwjtlqry.supabase.co/storage/v1/object/public/course-materials/worksheets/NG-09_worksheet.docx', sort_order=9 WHERE id='b0e90950-0000-4000-8000-000000000000';
+
+-- 本編article削除（NG）
+DELETE FROM public.lessons WHERE id IN ('b0e90100-0000-4000-8000-000000000000','b0e90200-0000-4000-8000-000000000000','b0e90300-0000-4000-8000-000000000000','b0e90400-0000-4000-8000-000000000000','b0e90500-0000-4000-8000-000000000000','b0e90600-0000-4000-8000-000000000000','b0e90700-0000-4000-8000-000000000000','b0e90800-0000-4000-8000-000000000000','b0e90900-0000-4000-8000-000000000000');
 
 -- ───────── PART A4: AI（AI活用・1コース9本）本編→動画 一本化 ─────────
 -- AIはスライドPDF＋ワークシート両方あり。動画レッスン(b0a10X50)にslides/AI-0X_slides.pdf＋worksheets/AI-0X_worksheet.docxを付与し、先頭(sort 1〜9)へ。
