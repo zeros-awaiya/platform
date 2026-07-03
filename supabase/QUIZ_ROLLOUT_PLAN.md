@@ -1,13 +1,14 @@
 # クイズ展開プラン（動画3問＋コース末5問）── 次セッション開始用ハンドオフ
 
-最終更新: 2026-06-29 / **A群 全26コース完了**（残り=B群11コースのみ）
+最終更新: 2026-07-03 / **A群 全26コース完了・B群の動画整理も全コース完了**（残り=B群12コースのクイズ投入のみ）
 - 完了(各動画3問+コース末5問): AI・L07-A/B/C/D・L1全6・L2全6・L3全6・MT-C/M/K = 26コース。
 - A群の型: 既存コース末5問は末尾sort99へ、動画別3問(id=動画IDの index5→'9')を追加。台本=`03_教育コース工場/04_courses/<LEVEL>_<AREA>-<n>_*.md`。
 - ツール: 作問はサブエージェント並列(台本Read→JSON)、反映は `scratchpad/apply_group_a.mjs`(GA_DIR=json群)。再現SQLは `supabase/quiz_pv/<courseId8>.sql`。
 - **B群の動画整理 完了(2026-06-29)**: CC-01〜08(各 動画1・記事削除済・sort1)／L0.1新社会人(動画3・記事削除済・sort1〜3)／CB(seed_cb_video_lessonsで動画9投入・記事削除済・sort1〜9)。→ CB/CC/L0.1 は**クイズ投入可能な状態**になった(バンク: seed_cb_quiz / seed_l01_l07d_quiz / seed_cc_quiz、または本文)。
   - 注意(重要): 記事削除は `lesson_progress` があるとトリガー`trg_update_course_enrollment_progress`が`enrollments.course_id`null違反で失敗する。**先に該当lesson_progressを削除→その後lesson削除**の順で回避(L0.1で対処済)。
-- **NG(調整交渉術, b0e90000)は未着手**: 動画レッスンのseedもYouTube URLも存在せず=**動画が未制作**。動画を作って seed(seed_ng_video_lessons相当)を用意するまで動画整理・クイズとも不可。
-- **残クイズ対象**: CB(9動画)・CC-01〜08(各1動画)・L0.1(3動画) にA群と同じ要領で動画別3問を付与可能(コース末5問は既存 or CB/L0.1はバンク流用)。
+- **NG(調整交渉術, b0e90000)の動画整理 完了(2026-07-03)**: 動画9本をYouTube限定公開→`seed_ng_video_lessons.sql`(実URL・実尺)＋`seed_pf_video_consolidation.sql` PART A5 を本番適用（video9・sort1〜9・記事削除済・全動画にws URL付与、ワークシート9本もStorage反映済み・公開URL疎通確認済み）。→ **NGもクイズ投入可能**(バンク: seed_ng_quiz)。
+  - ⚠️ 注意: `seed_pf_video_consolidation.sql` を**全体re-runしてはいけない**。旧PART(AI/CB/CC/L0.1)は動画をsort1〜9に戻す内容のため、クイズ適用済みコースの「動画=奇数sort・クイズ=偶数sort」配置を壊す。以後は必要ブロックのみ抽出実行（2026-07-03はA5のみ実行）。
+- **残クイズ対象**: CB(9動画)・CC-01〜08(各1動画)・L0.1(3動画)・NG(9動画) にA群と同じ要領で動画別3問を付与可能(コース末5問は既存 or CB/L0.1/NGはバンク流用)。
 
 ## 実測による分類（2026-06-29・本番DB）
 - **A: 即クイズ可（記事0の綺麗な動画コース／バンク無し→台本 `03_教育コース工場/04_courses/*.md` から新規作成）**
@@ -15,6 +16,7 @@
 - **B: 一本化が先（クイズ以前に動画整理が必要）**
   - 記事残存(動画と併存): CC-01〜08(各1v+1a)・L0.1新社会人(3v+3a) … 本編article削除→動画を先頭へ、が未適用
   - 動画0(未一本化): CB(0v+9a)・NG(0v+9a) … 動画レッスンの投入(seed_pf_video_consolidation相当)が未適用
+  - ※B群はその後すべて解消: CB/CC/L0.1=2026-06-29、NG=2026-07-03（冒頭の完了メモ参照）
 - **済**: AI活用(9v・動画別9+総合1)・L07-D(1v・動画別1+総合1=`seed_l07d_quiz_per_video.sql`)
 - バンク有り: CB=seed_cb_quiz / NG=seed_ng_quiz / L0.1=seed_l01_l07d_quiz（ただしBの一本化後に使用）
 
