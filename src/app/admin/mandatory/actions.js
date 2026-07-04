@@ -2,8 +2,13 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { assertRole } from '@/utils/auth/guard'
+import { ROLES } from '@/lib/constants'
 
 export async function createMandatoryCourse(prevState, formData) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const courseId = formData.get('courseId')
@@ -40,6 +45,9 @@ export async function createMandatoryCourse(prevState, formData) {
 }
 
 export async function deleteMandatoryCourse(id) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const { error } = await supabase

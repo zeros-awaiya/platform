@@ -2,10 +2,15 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { assertRole } from '@/utils/auth/guard'
+import { ROLES } from '@/lib/constants'
 
 // --- Learning Path (Roadmap) Actions ---
 
 export async function createRoadmap(name, description = '') {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   if (!name) {
@@ -26,6 +31,9 @@ export async function createRoadmap(name, description = '') {
 }
 
 export async function updateRoadmap(id, name, description, isActive, visibleOrgIds = []) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   if (!name) {
@@ -72,6 +80,9 @@ export async function updateRoadmap(id, name, description, isActive, visibleOrgI
 }
 
 export async function deleteRoadmap(id) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -90,6 +101,9 @@ export async function deleteRoadmap(id) {
 // --- Roadmap Course Actions ---
 
 export async function addCourseToRoadmap(roadmapId, courseId) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   // Verify not already added
@@ -131,6 +145,9 @@ export async function addCourseToRoadmap(roadmapId, courseId) {
 }
 
 export async function removeCourseFromRoadmap(roadmapId, courseId) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -148,6 +165,9 @@ export async function removeCourseFromRoadmap(roadmapId, courseId) {
 }
 
 export async function reorderRoadmapCourses(roadmapId, orderedCourseIds) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const promises = orderedCourseIds.map((courseId, index) => {

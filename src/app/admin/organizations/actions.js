@@ -2,8 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { assertRole } from '@/utils/auth/guard'
+import { ROLES } from '@/lib/constants'
 
 export async function createOrganization(prevState, formData) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
   const name = formData.get('name')
   const status = formData.get('status') || 'active'
@@ -25,6 +30,9 @@ export async function createOrganization(prevState, formData) {
 }
 
 export async function updateOrganization(id, name, status) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   if (!name) {
@@ -45,6 +53,9 @@ export async function updateOrganization(id, name, status) {
 }
 
 export async function deleteOrganization(id) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const { error } = await supabase

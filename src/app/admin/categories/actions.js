@@ -2,8 +2,13 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { assertRole } from '@/utils/auth/guard'
+import { ROLES } from '@/lib/constants'
 
 export async function createCategory(prevState, formData) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const name = formData.get('name')
@@ -33,6 +38,9 @@ export async function createCategory(prevState, formData) {
 }
 
 export async function deleteCategory(id) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   // 紐づくコースがあるか確認

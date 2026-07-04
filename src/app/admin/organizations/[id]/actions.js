@@ -2,8 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { assertRole } from '@/utils/auth/guard'
+import { ROLES } from '@/lib/constants'
 
 export async function createDepartment(orgId, name) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   if (!name) {
@@ -23,6 +28,9 @@ export async function createDepartment(orgId, name) {
 }
 
 export async function deleteDepartment(orgId, deptId) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const { error } = await supabase

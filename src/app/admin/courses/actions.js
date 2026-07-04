@@ -2,10 +2,15 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { assertRole } from '@/utils/auth/guard'
+import { ROLES } from '@/lib/constants'
 
 // --- Course Actions ---
 
 export async function createCourse(title, categoryId, description = '', thumbnailUrl = '') {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   if (!title) {
@@ -32,6 +37,9 @@ export async function createCourse(title, categoryId, description = '', thumbnai
 }
 
 export async function updateCourse(id, title, categoryId, description, thumbnailUrl, isActive) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   if (!title) {
@@ -59,6 +67,9 @@ export async function updateCourse(id, title, categoryId, description, thumbnail
 }
 
 export async function deleteCourse(id) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -77,6 +88,9 @@ export async function deleteCourse(id) {
 // --- Lesson Actions ---
 
 export async function createLesson(courseId, title, contentType, url = '', filePath = '', articleContent = '', estimatedMinutes = 5, slidePdfUrl = '', worksheetWordUrl = '') {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   if (!title) {
@@ -118,6 +132,9 @@ export async function createLesson(courseId, title, contentType, url = '', fileP
 }
 
 export async function updateLesson(id, title, contentType, url, filePath, articleContent, estimatedMinutes, slidePdfUrl = '', worksheetWordUrl = '') {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   if (!title) {
@@ -147,6 +164,9 @@ export async function updateLesson(id, title, contentType, url, filePath, articl
 }
 
 export async function deleteLesson(id, courseId) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -163,6 +183,9 @@ export async function deleteLesson(id, courseId) {
 }
 
 export async function reorderLessons(courseId, orderedIds) {
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   // Use a transaction or individual updates
@@ -188,6 +211,9 @@ export async function reorderLessons(courseId, orderedIds) {
 
 export async function saveQuizQuestions(lessonId, questions) {
   // questions: Array of { id, question, option_a, option_b, option_c, option_d, correct_option }
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
+  if (!auth.ok) return { error: auth.error }
+
   const supabase = await createClient()
 
   // 1. Fetch existing questions to detect deletions
