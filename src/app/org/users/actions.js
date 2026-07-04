@@ -3,39 +3,23 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { getAdminClient, provisionUser } from '@/utils/supabase/admin'
+import { assertRole } from '@/utils/auth/guard'
 import { ROLES } from '@/lib/constants'
-
-// 呼び出し元の ORG_ADMIN 検証（組織IDを返す）
-async function requireOrgAdmin(supabase) {
-  const { data: { user: currentUser } } = await supabase.auth.getUser()
-  if (!currentUser) return { error: '認証セッションがありません。' }
-
-  const { data: profile } = await supabase
-    .from('users')
-    .select('organization_id, role')
-    .eq('id', currentUser.id)
-    .single()
-
-  if (!profile || profile.role !== ROLES.ORG_ADMIN) {
-    return { error: '権限がありません（組織管理者専用）。' }
-  }
-  return { orgId: profile.organization_id }
-}
 
 export async function inviteUser(email, name, role, departmentId, position) {
   try {
     const supabase = await createClient()
 
-    const gate = await requireOrgAdmin(supabase)
-    if (gate.error) return { error: gate.error }
-    const orgId = gate.orgId
+    const auth = await assertRole([ROLES.ORG_ADMIN])
+    if (!auth.ok) return { error: auth.error }
+    const orgId = auth.profile.organization_id
 
     const result = await provisionUser({
       supabase,
       adminClient: getAdminClient(supabase),
       profile: {
         name,
-        email,
+        email: email?.trim(),
         organization_id: orgId,
         department_id: departmentId || null,
         role: role || ROLES.LEARNER,
@@ -58,8 +42,8 @@ export async function toggleUserActive(targetUserId, isActive) {
   try {
     const supabase = await createClient()
 
-    const gate = await requireOrgAdmin(supabase)
-    if (gate.error) return { error: gate.error }
+    const auth = await assertRole([ROLES.ORG_ADMIN])
+    if (!auth.ok) return { error: auth.error }
 
     // 対象ユーザーが自組織に属するか検証
     const { data: targetUser } = await supabase
@@ -68,7 +52,7 @@ export async function toggleUserActive(targetUserId, isActive) {
       .eq('id', targetUserId)
       .single()
 
-    if (!targetUser || targetUser.organization_id !== gate.orgId) {
+    if (!targetUser || targetUser.organization_id !== auth.profile.organization_id) {
       return { error: '対象のユーザーが自組織に見つかりません。' }
     }
 
@@ -92,9 +76,9 @@ export async function importUsersFromCSV(usersList) {
   try {
     const supabase = await createClient()
 
-    const gate = await requireOrgAdmin(supabase)
-    if (gate.error) return { error: gate.error }
-    const orgId = gate.orgId
+    const auth = await assertRole([ROLES.ORG_ADMIN])
+    if (!auth.ok) return { error: auth.error }
+    const orgId = auth.profile.organization_id
 
     // CSV から部署名を抽出
     const deptNames = [...new Set(usersList.map(u => u.departmentName).filter(Boolean))]
@@ -141,7 +125,7 @@ export async function importUsersFromCSV(usersList) {
         adminClient,
         profile: {
           name,
-          email,
+          email: email?.trim(),
           organization_id: orgId,
           department_id: departmentId,
           role: 'LEARNER',
