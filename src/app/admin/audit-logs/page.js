@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import styles from '../admin.module.css'
+import { formatDateTime } from '@/utils/format'
 
 export const metadata = {
   title: '監査ログ | あわい屋ZEROS 本部管理',
@@ -14,20 +15,6 @@ export default async function AdminAuditLogsPage() {
     .from('audit_logs')
     .select('*')
     .order('created_at', { ascending: false })
-
-  // 日付のフォーマット
-  const formatDate = (isoString) => {
-    if (!isoString) return '-'
-    const date = new Date(isoString)
-    return date.toLocaleString('ja-JP', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    })
-  }
 
   return (
     <div>
@@ -60,7 +47,7 @@ export default async function AdminAuditLogsPage() {
               logs.map((log) => (
                 <tr key={log.id} className={styles.tr}>
                   <td className={styles.td} style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>
-                    {formatDate(log.created_at)}
+                    {formatDateTime(log.created_at)}
                   </td>
                   <td className={styles.td} style={{ fontWeight: '600', color: '#ffffff' }}>
                     {log.user_name || 'システム自動'}

@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import styles from '../dashboard.module.css'
+import { formatDate } from '@/utils/format'
 
 export default function LearnerHistoryClientPage({
   completedCoursesCount,
@@ -99,10 +100,10 @@ export default function LearnerHistoryClientPage({
                     <td style={{ padding: '1.25rem 1rem', textAlign: 'center' }}>{item.totalLessonsCount} レッスン</td>
                     <td style={{ padding: '1.25rem 1rem', textAlign: 'center' }}>{item.durationMinutes} 分</td>
                     <td style={{ padding: '1.25rem 1rem', fontSize: '0.85rem' }}>
-                      {new Date(item.startedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+                      {formatDate(item.startedAt)}
                     </td>
                     <td style={{ padding: '1.25rem 1rem', fontSize: '0.85rem', color: '#10b981', fontWeight: '600' }}>
-                      {new Date(item.completedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+                      {formatDate(item.completedAt)}
                     </td>
                     <td style={{ padding: '1.25rem 1rem', textAlign: 'right' }}>
                       <button 

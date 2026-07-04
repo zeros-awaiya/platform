@@ -4,6 +4,7 @@ import { useState, useActionState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createMandatoryCourse, deleteMandatoryCourse } from './actions'
+import { formatDate } from '@/utils/format'
 import styles from './mandatory.module.css'
 import adminStyles from '../admin.module.css'
 
@@ -50,17 +51,6 @@ export default function MandatoryClientPage({
         alert(res.error || '解除に失敗しました。')
       }
     }
-  }
-
-  // 日付のフォーマット (YYYY/MM/DD)
-  const formatDate = (isoString) => {
-    if (!isoString) return '-'
-    const date = new Date(isoString)
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    })
   }
 
   // 期限判定
