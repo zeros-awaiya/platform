@@ -2,8 +2,25 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { getAdminClient } from '@/utils/supabase/admin'
 import { assertRole } from '@/utils/auth/guard'
 import { ROLES } from '@/lib/constants'
+
+// レッスン削除の前処理: 受講進捗を先に削除する。
+// 進捗が残ったまま lesson を消すと、FKカスケード削除時の
+// trg_update_course_enrollment_progress が消滅済み lesson の course_id を引けず
+// enrollments への NULL INSERT で失敗する（AGENTS.md 記載の落とし穴）。
+// lesson_progress の RLS は本人書き込みのみのため、管理操作は service_role で行う
+// （呼び出し元は assertRole(SYSTEM_ADMIN) 検証済みであること）。
+async function deleteLessonProgressFor(supabase, lessonIds) {
+  if (!lessonIds || lessonIds.length === 0) return { error: null }
+  const adminClient = getAdminClient(supabase)
+  const { error } = await adminClient
+    .from('lesson_progress')
+    .delete()
+    .in('lesson_id', lessonIds)
+  return { error }
+}
 
 // --- Course Actions ---
 
@@ -71,6 +88,24 @@ export async function deleteCourse(id) {
   if (!auth.ok) return { error: auth.error }
 
   const supabase = await createClient()
+
+  // コース配下レッスンの受講進捗を先に削除（deleteLessonProgressFor のコメント参照）
+  const { data: courseLessons, error: lessonsError } = await supabase
+    .from('lessons')
+    .select('id')
+    .eq('course_id', id)
+
+  if (lessonsError) {
+    return { error: `コース内レッスンの取得に失敗しました: ${lessonsError.message}` }
+  }
+
+  const { error: progressError } = await deleteLessonProgressFor(
+    supabase,
+    (courseLessons || []).map(l => l.id)
+  )
+  if (progressError) {
+    return { error: `受講進捗の削除に失敗しました: ${progressError.message}` }
+  }
 
   const { error } = await supabase
     .from('courses')
@@ -168,6 +203,12 @@ export async function deleteLesson(id, courseId) {
   if (!auth.ok) return { error: auth.error }
 
   const supabase = await createClient()
+
+  // 受講進捗を先に削除（deleteLessonProgressFor のコメント参照）
+  const { error: progressError } = await deleteLessonProgressFor(supabase, [id])
+  if (progressError) {
+    return { error: `受講進捗の削除に失敗しました: ${progressError.message}` }
+  }
 
   const { error } = await supabase
     .from('lessons')
