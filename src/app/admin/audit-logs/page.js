@@ -11,10 +11,20 @@ export default async function AdminAuditLogsPage() {
   const supabase = await createClient()
 
   // 監査ログを最新順にフェッチ
-  const { data: logs } = await supabase
+  const { data: logs, error } = await supabase
     .from('audit_logs')
     .select('*')
     .order('created_at', { ascending: false })
+
+  // 取得失敗を「ログなし」と誤認させない（監査証跡のため明示エラー）
+  if (error) {
+    console.error('Failed to load audit logs:', error)
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#fca5a5' }}>
+        監査ログの取得に失敗しました: {error.message}
+      </div>
+    )
+  }
 
   return (
     <div>

@@ -9,11 +9,21 @@ export const metadata = {
 export default async function AuditExportPage() {
   const supabase = await createClient()
 
-  const { data: organizations } = await supabase
+  const { data: organizations, error } = await supabase
     .from('organizations')
     .select('id, name')
     .eq('status', 'active')
     .order('name', { ascending: true })
+
+  // 取得失敗を「組織なし」と誤認させない（監査導線のため明示エラー）
+  if (error) {
+    console.error('Failed to load organizations for audit export:', error)
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#fca5a5' }}>
+        組織一覧の取得に失敗しました: {error.message}
+      </div>
+    )
+  }
 
   return <AuditExportClientPage organizations={organizations || []} />
 }
