@@ -15,40 +15,52 @@ function statusLabel(status) {
   return '未受講'
 }
 
+// クエリ失敗を握りつぶさない（欠落データの監査文書が正常な顔で出るのを防ぐ）
+function must({ data, error }, label) {
+  if (error) throw new Error(`監査データ取得失敗(${label}): ${error.message}`)
+  return data ?? []
+}
+
 export async function getAuditReport(supabase, organizationId, options = {}) {
   const { from = null, to = null } = options
 
-  const org = (await supabase
-    .from('organizations').select('id, name').eq('id', organizationId).single()).data
+  // 組織のみ「0行 → null（呼び出し側で404）」の既存挙動を保つ。
+  // single() は0行を PGRST116 エラーで返すため、それ以外のエラーだけを失敗扱いにする。
+  const orgRes = await supabase
+    .from('organizations').select('id, name').eq('id', organizationId).single()
+  if (orgRes.error && orgRes.error.code !== 'PGRST116') {
+    throw new Error(`監査データ取得失敗(organizations): ${orgRes.error.message}`)
+  }
+  const org = orgRes.data
   if (!org) return null
 
-  const departments = (await supabase
-    .from('departments').select('id, name').eq('organization_id', organizationId)).data || []
+  const departments = must(await supabase
+    .from('departments').select('id, name').eq('organization_id', organizationId), 'departments')
   const deptName = (id) => departments.find((d) => d.id === id)?.name || '組織全体'
 
-  const members = (await supabase
+  const members = must(await supabase
     .from('users').select('id, name, email, department_id, role')
     .eq('organization_id', organizationId).eq('is_active', true)
-    .order('name', { ascending: true })).data || []
+    .order('name', { ascending: true }), 'users')
   const memberIds = members.map((m) => m.id)
   const memberName = (id) => members.find((m) => m.id === id)?.name || '-'
 
-  const mandatory = (await supabase
+  const mandatory = must(await supabase
     .from('mandatory_courses').select('id, course_id, department_id, due_date')
-    .eq('organization_id', organizationId)).data || []
+    .eq('organization_id', organizationId), 'mandatory_courses')
 
-  const courses = (await supabase.from('courses').select('id, title')).data || []
+  const courses = must(await supabase.from('courses').select('id, title'), 'courses')
   const courseTitle = (id) => courses.find((c) => c.id === id)?.title || '不明なコース'
 
-  const lessons = (await supabase.from('lessons').select('id, title, course_id')).data || []
+  const lessons = must(await supabase.from('lessons').select('id, title, course_id'), 'lessons')
   const lessonById = (id) => lessons.find((l) => l.id === id)
 
   let enrollments = []
   let attempts = []
   if (memberIds.length > 0) {
-    enrollments = (await supabase
+    enrollments = must(await supabase
       .from('enrollments').select('user_id, course_id, status, completed_at, progress_percent')
-      .in('user_id', memberIds)).data || []
+      .in('user_id', memberIds), 'enrollments')
 
     let query = supabase
       .from('quiz_attempts')
@@ -56,7 +68,7 @@ export async function getAuditReport(supabase, organizationId, options = {}) {
       .in('user_id', memberIds)
     if (from) query = query.gte('attempted_at', from)
     if (to) query = query.lte('attempted_at', to)
-    attempts = (await query).data || []
+    attempts = must(await query, 'quiz_attempts')
   }
 
   // §1 必須研修一覧

@@ -121,7 +121,13 @@ export async function GET(request) {
     options.to = `${Number(fy) + 1}-03-31T23:59:59`
   }
 
-  const report = await getAuditReport(supabase, organizationId, options)
+  let report
+  try {
+    report = await getAuditReport(supabase, organizationId, options)
+  } catch (error) {
+    console.error('Audit report generation failed:', error)
+    return new NextResponse(`監査データの取得に失敗しました: ${error.message}`, { status: 500 })
+  }
   if (!report) return new NextResponse('対象組織が見つかりません。', { status: 404 })
 
   return new NextResponse(renderHtml(report), {
