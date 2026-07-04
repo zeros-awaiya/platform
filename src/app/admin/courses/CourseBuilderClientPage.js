@@ -76,11 +76,9 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
     const categoryId = formData.get('category_id')
     const description = formData.get('description')
     const thumbnailUrl = formData.get('thumbnail_url')
-    const slidePdfUrl = formData.get('slide_pdf_url')
-    const worksheetWordUrl = formData.get('worksheet_word_url')
 
     startTransition(async () => {
-      const res = await createCourse(title, categoryId, description, thumbnailUrl, slidePdfUrl, worksheetWordUrl)
+      const res = await createCourse(title, categoryId, description, thumbnailUrl)
       if (res?.error) {
         setErrorMsg(res.error)
       } else {
@@ -100,11 +98,9 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
     const description = formData.get('description')
     const thumbnailUrl = formData.get('thumbnail_url')
     const isActive = formData.get('is_active') === 'true'
-    const slidePdfUrl = formData.get('slide_pdf_url')
-    const worksheetWordUrl = formData.get('worksheet_word_url')
 
     startTransition(async () => {
-      const res = await updateCourse(selectedCourse.id, title, categoryId, description, thumbnailUrl, isActive, slidePdfUrl, worksheetWordUrl)
+      const res = await updateCourse(selectedCourse.id, title, categoryId, description, thumbnailUrl, isActive)
       if (res?.error) {
         setErrorMsg(res.error)
       } else {
