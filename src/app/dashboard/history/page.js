@@ -7,6 +7,8 @@ export const dynamic = 'force-dynamic'
 export default async function LearnerHistoryPage() {
   const supabase = await createClient()
 
+  // try 内はデータ取得・集計のみ。JSX 構築は try の外で行う（react-hooks/error-boundaries 対応）
+  let historyData = null
   try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -21,7 +23,7 @@ export default async function LearnerHistoryPage() {
 
     // Calculate aggregated statistics
     const userEnrollments = enrollments || []
-    
+
     // 1. Completed courses count
     const completedCoursesCount = userEnrollments.filter(e => e.status === 'completed').length
 
@@ -43,10 +45,10 @@ export default async function LearnerHistoryPage() {
         if (!course) return
 
         const lessons = course.lessons || []
-        
+
         // Sum up total minutes of the course if completed, or proportional to progress
         const courseTotalMinutes = lessons.reduce((acc, l) => acc + (l.estimated_minutes || 0), 0)
-        
+
         if (e.status === 'completed') {
           totalMinutes += courseTotalMinutes
           completedCoursesList.push({
@@ -65,20 +67,30 @@ export default async function LearnerHistoryPage() {
       })
     }
 
-    return (
-      <LearnerHistoryClientPage
-        completedCoursesCount={completedCoursesCount}
-        totalMinutes={totalMinutes}
-        completedCoursesList={completedCoursesList}
-        activeCoursesCount={userEnrollments.filter(e => e.status === 'in_progress').length}
-      />
-    )
+    historyData = {
+      completedCoursesCount,
+      totalMinutes,
+      completedCoursesList,
+      activeCoursesCount: userEnrollments.filter(e => e.status === 'in_progress').length,
+    }
   } catch (error) {
     console.error('Failed to load learner history:', error)
+  }
+
+  if (!historyData) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: '#fca5a5' }}>
         学習履歴の読み込みに失敗しました。
       </div>
     )
   }
+
+  return (
+    <LearnerHistoryClientPage
+      completedCoursesCount={historyData.completedCoursesCount}
+      totalMinutes={historyData.totalMinutes}
+      completedCoursesList={historyData.completedCoursesList}
+      activeCoursesCount={historyData.activeCoursesCount}
+    />
+  )
 }

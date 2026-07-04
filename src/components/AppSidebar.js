@@ -1,27 +1,33 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logout } from '@/app/login/actions'
+
+// localStorage は外部ストアとして useSyncExternalStore で読む
+// （旧: useState('ocean')＋useEffect(setState) は setState-in-effect の lint エラー）
+const emptySubscribe = () => () => {}
 
 // admin / org / dashboard 共通のサイドバー（旧: 3ファイルにほぼ同一実装が重複）。
 // 見た目は従来どおり各エリアの CSS モジュールを styles として受け取る。
 // 実装は AdminSidebar を正とした（ホームリンク＝links[0].href、バッジは任意）。
 export default function AppSidebar({ links, logoBadge, styles }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [activeTheme, setActiveTheme] = useState('ocean')
+  // テーマ変更後に snapshot を再読させるための再描画トリガー
+  const [, setThemeVersion] = useState(0)
   const pathname = usePathname()
 
-  useEffect(() => {
-    const currentTheme = localStorage.getItem('zeros-theme') || 'ocean'
-    setActiveTheme(currentTheme)
-  }, [])
+  const activeTheme = useSyncExternalStore(
+    emptySubscribe,
+    () => localStorage.getItem('zeros-theme') || 'ocean', // client snapshot
+    () => 'ocean',                                        // server snapshot
+  )
 
   const handleThemeChange = (theme) => {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('zeros-theme', theme)
-    setActiveTheme(theme)
+    setThemeVersion(v => v + 1)
   }
 
   const toggleSidebar = () => setIsOpen(!isOpen)

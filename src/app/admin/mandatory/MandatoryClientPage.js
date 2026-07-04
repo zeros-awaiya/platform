@@ -18,6 +18,11 @@ export default function MandatoryClientPage({
   const [selectedOrgId, setSelectedOrgId] = useState('')
   const [toastMessage, setToastMessage] = useState('')
 
+  const showToast = (msg) => {
+    setToastMessage(msg)
+    setTimeout(() => setToastMessage(''), 3000)
+  }
+
   // 必須受講登録のServer Action実行管理
   const [state, formAction, isPending] = useActionState(async (prevState, formData) => {
     const res = await createMandatoryCourse(prevState, formData)
@@ -33,11 +38,6 @@ export default function MandatoryClientPage({
   const filteredDepartments = departments.filter(
     (dept) => dept.organization_id === selectedOrgId
   )
-
-  const showToast = (msg) => {
-    setToastMessage(msg)
-    setTimeout(() => setToastMessage(''), 3000)
-  }
 
   // 必須受講設定の削除（解除）
   const handleDelete = async (id, courseTitle, orgName) => {
