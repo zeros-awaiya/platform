@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { isMockMode } from '@/utils/supabase/mockMode'
 
 export async function GET() {
   try {
@@ -12,13 +13,8 @@ export async function GET() {
       .limit(1)
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
-    const isMock = 
-      !supabaseUrl || 
-      supabaseUrl.includes('your-supabase-project') ||
-      !supabaseAnonKey || 
-      supabaseAnonKey === 'your-supabase-anon-key'
+    const isMock = isMockMode()
 
     if (error) throw error
 

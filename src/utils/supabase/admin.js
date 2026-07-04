@@ -1,14 +1,8 @@
 import { createClient as createServiceRoleClient } from '@supabase/supabase-js'
+import { isMockMode } from './mockMode'
 
-// Supabase 未設定（プレースホルダ）時はモックモード。server.js と同一判定。
-export function isMockMode() {
-  return (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-supabase-project') ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'your-supabase-anon-key'
-  )
-}
+// 判定の正本は mockMode.js。既存の import 元（admin/users/actions.js 等）向けに re-export。
+export { isMockMode } from './mockMode'
 
 // Service Role クライアント（サーバー側でのユーザープロビジョニング用）
 export function getServiceRoleClient() {

@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
+import { isMockMode } from './mockMode'
 
 export async function updateSession(request) {
   let supabaseResponse = NextResponse.next({
@@ -9,16 +10,9 @@ export async function updateSession(request) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
-  // Check if Supabase keys are not set or left as defaults (Mock Mode)
-  const isMockMode = 
-    !supabaseUrl || 
-    supabaseUrl.includes('your-supabase-project') ||
-    !supabaseAnonKey || 
-    supabaseAnonKey === 'your-supabase-anon-key'
-
   let user = null
 
-  if (isMockMode) {
+  if (isMockMode()) {
     const sessionCookie = request.cookies.get('mock-session')
     if (sessionCookie) {
       try {
