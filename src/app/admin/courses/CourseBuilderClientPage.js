@@ -12,9 +12,10 @@ import {
   saveQuizQuestions
 } from './actions'
 import styles from '../admin.module.css'
+import LessonFormModal from './LessonFormModal'
+import LessonListSection from './LessonListSection'
 
 export default function CourseBuilderClientPage({ initialCourses, categories }) {
-  const [courses, setCourses] = useState(initialCourses)
   const [selectedCourseId, setSelectedCourseId] = useState(initialCourses[0]?.id || null)
   const [searchQuery, setSearchQuery] = useState('')
   const [catFilter, setCatFilter] = useState('')
@@ -376,92 +377,14 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
               </div>
 
               {/* SECTION B: LESSON BUILDER (旧モジュール・教材管理の統合) */}
-              <div className={styles.card}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#ffffff' }}>レッスン（教材構成）</h3>
-                    <p style={{ color: '#a1a1aa', fontSize: '0.8rem', marginTop: '0.25rem' }}>このコースを受講するメンバーが学ぶステップ順です。矢印で順番を調整できます。</p>
-                  </div>
-                  <button className={`${styles.btn} ${styles.btnPrimary}`} style={{ fontSize: '0.85rem' }} onClick={() => { setErrorMsg(''); setQuizQuestions([]); setActiveContentType('video'); setIsAddLessonOpen(true); }}>
-                    レッスンを追加
-                  </button>
-                </div>
-
-                {/* Lesson Table/List */}
-                <div className={styles.tableContainer} style={{ marginTop: '0', borderRadius: '12px' }}>
-                  <table className={styles.table} style={{ fontSize: '0.85rem' }}>
-                    <thead>
-                      <tr>
-                        <th className={styles.th} style={{ width: '60px', textAlign: 'center' }}>順序</th>
-                        <th className={styles.th}>レッスン名</th>
-                        <th className={styles.th}>形式</th>
-                        <th className={styles.th}>目安時間</th>
-                        <th className={styles.th} style={{ textAlign: 'right' }}>操作</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(!selectedCourse.lessons || selectedCourse.lessons.length === 0) ? (
-                        <tr>
-                          <td colSpan="5" className={styles.td} style={{ textAlign: 'center', color: '#71717a', padding: '3rem' }}>
-                            レッスンが登録されていません。右上の「レッスンを追加」から作成してください。
-                          </td>
-                        </tr>
-                      ) : (
-                        selectedCourse.lessons.map((lesson, idx) => (
-                          <tr key={lesson.id} className={styles.tr}>
-                            <td className={styles.td} style={{ textAlign: 'center' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
-                                <button 
-                                  style={{ background: 'none', border: 'none', color: idx === 0 ? '#3f3f46' : '#a1a1aa', cursor: idx === 0 ? 'not-allowed' : 'pointer' }}
-                                  onClick={() => handleMoveLesson(idx, -1)}
-                                  disabled={idx === 0 || isPending}
-                                >
-                                  ▲
-                                </button>
-                                <button 
-                                  style={{ background: 'none', border: 'none', color: idx === selectedCourse.lessons.length - 1 ? '#3f3f46' : '#a1a1aa', cursor: idx === selectedCourse.lessons.length - 1 ? 'not-allowed' : 'pointer' }}
-                                  onClick={() => handleMoveLesson(idx, 1)}
-                                  disabled={idx === selectedCourse.lessons.length - 1 || isPending}
-                                >
-                                  ▼
-                                </button>
-                              </div>
-                            </td>
-                            <td className={styles.td} style={{ fontWeight: '600', color: '#ffffff' }}>
-                              {lesson.title}
-                            </td>
-                            <td className={styles.td}>
-                              <span style={{
-                                fontSize: '0.75rem',
-                                padding: '0.15rem 0.4rem',
-                                borderRadius: '4px',
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                color: '#d4d4d8'
-                              }}>
-                                {lesson.content_type.toUpperCase()}
-                              </span>
-                            </td>
-                            <td className={styles.td}>
-                              {lesson.estimated_minutes} 分
-                            </td>
-                            <td className={styles.td} style={{ textAlign: 'right' }}>
-                              <div className={styles.actionCell} style={{ justifyContent: 'flex-end' }}>
-                                <button className={`${styles.btn} ${styles.btnSecondary}`} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => { setErrorMsg(''); setQuizQuestions(lesson.quiz_questions || []); setActiveContentType(lesson.content_type); setEditLessonItem(lesson); }}>
-                                  編集
-                                </button>
-                                <button className={`${styles.btn} ${styles.btnDanger}`} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleDeleteLesson(lesson.id, lesson.title)}>
-                                  削除
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <LessonListSection
+                lessons={selectedCourse.lessons}
+                isPending={isPending}
+                onAddClick={() => { setErrorMsg(''); setQuizQuestions([]); setActiveContentType('video'); setIsAddLessonOpen(true); }}
+                onMoveLesson={handleMoveLesson}
+                onEditLesson={(lesson) => { setErrorMsg(''); setQuizQuestions(lesson.quiz_questions || []); setActiveContentType(lesson.content_type); setEditLessonItem(lesson); }}
+                onDeleteLesson={handleDeleteLesson}
+              />
             </>
           ) : (
             <div className={styles.card} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px', color: '#71717a' }}>
@@ -527,357 +450,44 @@ export default function CourseBuilderClientPage({ initialCourses, categories }) 
 
       {/* ADD LESSON MODAL */}
       {isAddLessonOpen && selectedCourse && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal} style={{ maxWidth: activeContentType === 'quiz' ? '800px' : '600px' }}>
-            <div className={styles.modalHeader}>レッスンを追加</div>
-            <form onSubmit={handleAddLessonSubmit}>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="lesson-title">レッスン名（教材タイトル）</label>
-                <input id="lesson-title" name="title" type="text" className={styles.input} placeholder="例: ChatGPTに指示を与える「プロンプト」の基本" required />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label} htmlFor="lesson-type">教材形式</label>
-                  <select
-                    id="lesson-type"
-                    name="content_type"
-                    className={styles.select}
-                    value={activeContentType}
-                    onChange={(e) => setActiveContentType(e.target.value)}
-                    required
-                  >
-                    <option value="video">YouTube動画 (埋め込み)</option>
-                    <option value="article">システム内解説記事 (Markdown)</option>
-                    <option value="url">外部リンク (Web記事・リソース)</option>
-                    <option value="pdf">PDFドキュメント (外部リンク)</option>
-                    <option value="word">Wordファイル (外部リンク)</option>
-                    <option value="powerpoint">PowerPoint (外部リンク)</option>
-                    <option value="quiz">確認テスト (QUIZ)</option>
-                  </select>
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label} htmlFor="lesson-time">目安学習時間 (分)</label>
-                  <input id="lesson-time" name="estimated_minutes" type="number" min="1" defaultValue="10" className={styles.input} required />
-                </div>
-              </div>
-
-              {activeContentType !== 'quiz' && (
-                <>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="lesson-url">教材のURL / 共有リンク</label>
-                    <input id="lesson-url" name="url" type="text" className={styles.input} placeholder="例: https://www.youtube.com/watch?v=... もしくは Google Drive 共有リンク" />
-                    <span style={{ fontSize: '0.75rem', color: '#71717a', marginTop: '0.25rem' }}>※動画、PDF、ドキュメントの共有リンクを入力してください（解説記事の場合は不要です）。</span>
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="lesson-slide-pdf">スライドPDF URL</label>
-                    <input id="lesson-slide-pdf" name="slide_pdf_url" type="text" className={styles.input} placeholder="例: https://example.com/slide.pdf" />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="lesson-worksheet-word">ワークシートWord URL</label>
-                    <input id="lesson-worksheet-word" name="worksheet_word_url" type="text" className={styles.input} placeholder="例: https://example.com/worksheet.docx" />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="lesson-article">システム内解説記事本文（Markdown対応・オプション）</label>
-                    <textarea id="lesson-article" name="article_content" rows="6" className={styles.textarea} placeholder="記事教材の場合は、ここにMarkdown形式でテキストを入力してください。"></textarea>
-                  </div>
-                </>
-              )}
-
-              {activeContentType === 'quiz' && (
-                <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: '700', color: '#ffffff' }}>クイズ問題設定（合格ライン: 80%以上正答）</h4>
-                    <button type="button" className={`${styles.btn} ${styles.btnSecondary}`} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }} onClick={handleAddQuizQuestion}>
-                      ＋ 問題を追加
-                    </button>
-                  </div>
-
-                  {quizQuestions.length === 0 ? (
-                    <p style={{ color: '#71717a', fontSize: '0.85rem', textAlign: 'center', padding: '2rem', background: 'rgba(255, 255, 255, 0.01)', border: '1px dashed rgba(255, 255, 255, 0.08)', borderRadius: '8px' }}>
-                      問題が追加されていません。右上の「問題を追加」から設問を設定してください。
-                    </p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxHeight: '320px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-                      {quizQuestions.map((q, qIdx) => (
-                        <div key={qIdx} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '1rem', position: 'relative' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveQuizQuestion(qIdx)}
-                            style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer' }}
-                          >
-                            削除
-                          </button>
-                          <div className={styles.formGroup} style={{ marginBottom: '0.75rem' }}>
-                            <label className={styles.label} style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>設問 {qIdx + 1}</label>
-                            <input
-                              type="text"
-                              value={q.question}
-                              onChange={(e) => handleUpdateQuizQuestion(qIdx, 'question', e.target.value)}
-                              className={styles.input}
-                              style={{ fontSize: '0.85rem' }}
-                              placeholder="例: この研修で最も重要とされる行動は何ですか？"
-                              required
-                            />
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                            <input
-                              type="text"
-                              value={q.option_a}
-                              onChange={(e) => handleUpdateQuizQuestion(qIdx, 'option_a', e.target.value)}
-                              className={styles.input}
-                              style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem' }}
-                              placeholder="選択肢 A"
-                              required
-                            />
-                            <input
-                              type="text"
-                              value={q.option_b}
-                              onChange={(e) => handleUpdateQuizQuestion(qIdx, 'option_b', e.target.value)}
-                              className={styles.input}
-                              style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem' }}
-                              placeholder="選択肢 B"
-                              required
-                            />
-                            <input
-                              type="text"
-                              value={q.option_c}
-                              onChange={(e) => handleUpdateQuizQuestion(qIdx, 'option_c', e.target.value)}
-                              className={styles.input}
-                              style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem' }}
-                              placeholder="選択肢 C"
-                              required
-                            />
-                            <input
-                              type="text"
-                              value={q.option_d}
-                              onChange={(e) => handleUpdateQuizQuestion(qIdx, 'option_d', e.target.value)}
-                              className={styles.input}
-                              style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem' }}
-                              placeholder="選択肢 D"
-                              required
-                            />
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.8rem' }}>
-                            <span style={{ color: '#a1a1aa' }}>正解の選択肢:</span>
-                            {['A', 'B', 'C', 'D'].map(opt => (
-                              <label key={opt} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', color: '#ffffff' }}>
-                                <input
-                                  type="radio"
-                                  name={`new_correct_${qIdx}`}
-                                  value={opt}
-                                  checked={q.correct_option === opt}
-                                  onChange={() => handleUpdateQuizQuestion(qIdx, 'correct_option', opt)}
-                                  style={{ cursor: 'pointer' }}
-                                />
-                                {opt}
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {errorMsg && (
-                <div className={styles.errorAlert} style={{ marginBottom: '1.25rem' }}>
-                  <span>{errorMsg}</span>
-                </div>
-              )}
-
-              <div className={styles.modalActions}>
-                <button type="button" className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setIsAddLessonOpen(false)} disabled={isPending}>
-                  キャンセル
-                </button>
-                <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={isPending}>
-                  {isPending ? '追加中...' : 'レッスンを追加'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <LessonFormModal
+          mode="add"
+          lesson={null}
+          activeContentType={activeContentType}
+          onContentTypeChange={setActiveContentType}
+          quizEditorProps={{
+            questions: quizQuestions,
+            onAdd: handleAddQuizQuestion,
+            onUpdate: handleUpdateQuizQuestion,
+            onRemove: handleRemoveQuizQuestion,
+            radioNamePrefix: 'new_correct',
+          }}
+          errorMsg={errorMsg}
+          isPending={isPending}
+          onSubmit={handleAddLessonSubmit}
+          onClose={() => setIsAddLessonOpen(false)}
+        />
       )}
 
       {/* EDIT LESSON MODAL */}
       {editLessonItem && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal} style={{ maxWidth: activeContentType === 'quiz' ? '800px' : '600px' }}>
-            <div className={styles.modalHeader}>レッスンを編集</div>
-            <form onSubmit={handleUpdateLessonSubmit}>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="edit-lesson-title">レッスン名（教材タイトル）</label>
-                <input id="edit-lesson-title" name="title" type="text" defaultValue={editLessonItem.title} className={styles.input} required />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label} htmlFor="edit-lesson-type">教材形式</label>
-                  <select
-                    id="edit-lesson-type"
-                    name="content_type"
-                    className={styles.select}
-                    value={activeContentType}
-                    onChange={(e) => setActiveContentType(e.target.value)}
-                    required
-                  >
-                    <option value="video">YouTube動画 (埋め込み)</option>
-                    <option value="article">システム内解説記事 (Markdown)</option>
-                    <option value="url">外部リンク (Web記事・リソース)</option>
-                    <option value="pdf">PDFドキュメント (外部リンク)</option>
-                    <option value="word">Wordファイル (外部リンク)</option>
-                    <option value="powerpoint">PowerPoint (外部リンク)</option>
-                    <option value="quiz">確認テスト (QUIZ)</option>
-                  </select>
-                </div>
-                <div className={styles.formGroup}>
-                  <label className={styles.label} htmlFor="edit-lesson-time">目安学習時間 (分)</label>
-                  <input id="edit-lesson-time" name="estimated_minutes" type="number" min="1" defaultValue={editLessonItem.estimated_minutes} className={styles.input} required />
-                </div>
-              </div>
-
-              {activeContentType !== 'quiz' && (
-                <>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="edit-lesson-url">教材のURL / 共有リンク</label>
-                    <input id="edit-lesson-url" name="url" type="text" defaultValue={editLessonItem.url || ''} className={styles.input} />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="edit-lesson-slide-pdf">スライドPDF URL</label>
-                    <input id="edit-lesson-slide-pdf" name="slide_pdf_url" type="text" defaultValue={editLessonItem.slide_pdf_url || ''} className={styles.input} placeholder="例: https://example.com/slide.pdf" />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="edit-lesson-worksheet-word">ワークシートWord URL</label>
-                    <input id="edit-lesson-worksheet-word" name="worksheet_word_url" type="text" defaultValue={editLessonItem.worksheet_word_url || ''} className={styles.input} placeholder="例: https://example.com/worksheet.docx" />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="edit-lesson-article">システム内解説記事本文（Markdown対応・オプション）</label>
-                    <textarea id="edit-lesson-article" name="article_content" rows="6" defaultValue={editLessonItem.article_content || ''} className={styles.textarea}></textarea>
-                  </div>
-                </>
-              )}
-
-              {activeContentType === 'quiz' && (
-                <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h4 style={{ fontSize: '0.95rem', fontWeight: '700', color: '#ffffff' }}>クイズ問題設定（合格ライン: 80%以上正答）</h4>
-                    <button type="button" className={`${styles.btn} ${styles.btnSecondary}`} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }} onClick={handleAddQuizQuestion}>
-                      ＋ 問題を追加
-                    </button>
-                  </div>
-
-                  {quizQuestions.length === 0 ? (
-                    <p style={{ color: '#71717a', fontSize: '0.85rem', textAlign: 'center', padding: '2rem', background: 'rgba(255, 255, 255, 0.01)', border: '1px dashed rgba(255, 255, 255, 0.08)', borderRadius: '8px' }}>
-                      問題が追加されていません。右上の「問題を追加」から設問を設定してください。
-                    </p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxHeight: '320px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-                      {quizQuestions.map((q, qIdx) => (
-                        <div key={qIdx} style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '8px', padding: '1rem', position: 'relative' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveQuizQuestion(qIdx)}
-                            style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer' }}
-                          >
-                            削除
-                          </button>
-                          <div className={styles.formGroup} style={{ marginBottom: '0.75rem' }}>
-                            <label className={styles.label} style={{ fontSize: '0.75rem', color: '#a1a1aa' }}>設問 {qIdx + 1}</label>
-                            <input
-                              type="text"
-                              value={q.question}
-                              onChange={(e) => handleUpdateQuizQuestion(qIdx, 'question', e.target.value)}
-                              className={styles.input}
-                              style={{ fontSize: '0.85rem' }}
-                              placeholder="例: この研修で最も重要とされる行動は何ですか？"
-                              required
-                            />
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                            <input
-                              type="text"
-                              value={q.option_a}
-                              onChange={(e) => handleUpdateQuizQuestion(qIdx, 'option_a', e.target.value)}
-                              className={styles.input}
-                              style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem' }}
-                              placeholder="選択肢 A"
-                              required
-                            />
-                            <input
-                              type="text"
-                              value={q.option_b}
-                              onChange={(e) => handleUpdateQuizQuestion(qIdx, 'option_b', e.target.value)}
-                              className={styles.input}
-                              style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem' }}
-                              placeholder="選択肢 B"
-                              required
-                            />
-                            <input
-                              type="text"
-                              value={q.option_c}
-                              onChange={(e) => handleUpdateQuizQuestion(qIdx, 'option_c', e.target.value)}
-                              className={styles.input}
-                              style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem' }}
-                              placeholder="選択肢 C"
-                              required
-                            />
-                            <input
-                              type="text"
-                              value={q.option_d}
-                              onChange={(e) => handleUpdateQuizQuestion(qIdx, 'option_d', e.target.value)}
-                              className={styles.input}
-                              style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem' }}
-                              placeholder="選択肢 D"
-                              required
-                            />
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.8rem' }}>
-                            <span style={{ color: '#a1a1aa' }}>正解の選択肢:</span>
-                            {['A', 'B', 'C', 'D'].map(opt => (
-                              <label key={opt} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', color: '#ffffff' }}>
-                                <input
-                                  type="radio"
-                                  name={`edit_correct_${qIdx}`}
-                                  value={opt}
-                                  checked={q.correct_option === opt}
-                                  onChange={() => handleUpdateQuizQuestion(qIdx, 'correct_option', opt)}
-                                  style={{ cursor: 'pointer' }}
-                                />
-                                {opt}
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {errorMsg && (
-                <div className={styles.errorAlert} style={{ marginBottom: '1.25rem' }}>
-                  <span>{errorMsg}</span>
-                </div>
-              )}
-
-              <div className={styles.modalActions}>
-                <button type="button" className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setEditLessonItem(null)} disabled={isPending}>
-                  キャンセル
-                </button>
-                <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={isPending}>
-                  {isPending ? '保存中...' : '変更を保存'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <LessonFormModal
+          mode="edit"
+          lesson={editLessonItem}
+          activeContentType={activeContentType}
+          onContentTypeChange={setActiveContentType}
+          quizEditorProps={{
+            questions: quizQuestions,
+            onAdd: handleAddQuizQuestion,
+            onUpdate: handleUpdateQuizQuestion,
+            onRemove: handleRemoveQuizQuestion,
+            radioNamePrefix: 'edit_correct',
+          }}
+          errorMsg={errorMsg}
+          isPending={isPending}
+          onSubmit={handleUpdateLessonSubmit}
+          onClose={() => setEditLessonItem(null)}
+        />
       )}
     </div>
   )
