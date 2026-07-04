@@ -1,12 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-
-// 各ロールの既定ホーム（不許可ロールのリダイレクト先・ループ回避）
-const ROLE_HOME = {
-  SYSTEM_ADMIN: '/admin',
-  ORG_ADMIN: '/org',
-  LEARNER: '/dashboard',
-}
+import { ROLE_HOME } from '@/lib/constants'
 
 // 認証済みユーザーの public.users プロファイルを取得（page.js と同一パターン）
 async function getProfile() {

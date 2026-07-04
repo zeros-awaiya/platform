@@ -1,6 +1,7 @@
 import AdminSidebar from './AdminSidebar'
 import styles from './admin.module.css'
 import { requireRole } from '@/utils/auth/guard'
+import { ROLES } from '@/lib/constants'
 
 export const metadata = {
   title: 'あわい屋ZEROS - 本部管理',
@@ -9,7 +10,7 @@ export const metadata = {
 
 export default async function AdminLayout({ children }) {
   // 本部管理は SYSTEM_ADMIN のみ。未認証/権限不足はリダイレクト（RLS単層依存を解消）
-  await requireRole(['SYSTEM_ADMIN'])
+  await requireRole([ROLES.SYSTEM_ADMIN])
 
   return (
     <div className={styles.layout}>

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { ROLES } from '@/lib/constants'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -26,9 +27,9 @@ export default async function Home() {
     redirect('/login')
   }
 
-  if (profile.role === 'SYSTEM_ADMIN') {
+  if (profile.role === ROLES.SYSTEM_ADMIN) {
     redirect('/admin')
-  } else if (profile.role === 'ORG_ADMIN') {
+  } else if (profile.role === ROLES.ORG_ADMIN) {
     redirect('/org')
   } else {
     redirect('/dashboard')

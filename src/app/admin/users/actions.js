@@ -3,11 +3,12 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { assertRole } from '@/utils/auth/guard'
+import { ROLES } from '@/lib/constants'
 import { getAdminClient, isMockMode, provisionUser } from '@/utils/supabase/admin'
 
 export async function createUser(prevState, formData) {
   // 呼び出し元が本部管理者か検証（service role を使うため特に厳格に）
-  const auth = await assertRole(['SYSTEM_ADMIN'])
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
   if (!auth.ok) return { error: auth.error }
 
   const supabase = await createClient()
@@ -86,7 +87,7 @@ export async function createUser(prevState, formData) {
 }
 
 export async function updateUser(userId, fields) {
-  const auth = await assertRole(['SYSTEM_ADMIN'])
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
   if (!auth.ok) return { error: auth.error }
 
   const supabase = await createClient()
@@ -101,7 +102,7 @@ export async function updateUser(userId, fields) {
     .from('users')
     .update({
       name,
-      role: role || 'LEARNER',
+      role: role || ROLES.LEARNER,
       organization_id: organizationId,
       department_id: departmentId === 'none' || !departmentId ? null : departmentId,
       position: position || null,
@@ -117,7 +118,7 @@ export async function updateUser(userId, fields) {
 }
 
 export async function deleteUser(userId) {
-  const auth = await assertRole(['SYSTEM_ADMIN'])
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
   if (!auth.ok) return { error: auth.error }
 
   // 自分自身の削除は禁止（ロックアウト防止）
@@ -152,7 +153,7 @@ export async function deleteUser(userId) {
 }
 
 export async function toggleUserActive(userId, isActive) {
-  const auth = await assertRole(['SYSTEM_ADMIN'])
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
   if (!auth.ok) return { error: auth.error }
 
   const supabase = await createClient()
@@ -171,7 +172,7 @@ export async function toggleUserActive(userId, isActive) {
 }
 
 export async function assignRoadmapsToUser(userId, roadmapIds = []) {
-  const auth = await assertRole(['SYSTEM_ADMIN'])
+  const auth = await assertRole([ROLES.SYSTEM_ADMIN])
   if (!auth.ok) return { error: auth.error }
 
   const supabase = await createClient()

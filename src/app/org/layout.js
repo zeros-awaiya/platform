@@ -1,6 +1,7 @@
 import OrgSidebar from './OrgSidebar'
 import styles from './org.module.css'
 import { requireRole } from '@/utils/auth/guard'
+import { ROLES } from '@/lib/constants'
 
 export const metadata = {
   title: 'あわい屋ZEROS - 組織管理',
@@ -9,7 +10,7 @@ export const metadata = {
 
 export default async function OrgLayout({ children }) {
   // 組織管理は ORG_ADMIN（本部 SYSTEM_ADMIN も閲覧可）。それ以外はリダイレクト
-  await requireRole(['ORG_ADMIN', 'SYSTEM_ADMIN'])
+  await requireRole([ROLES.ORG_ADMIN, ROLES.SYSTEM_ADMIN])
 
   return (
     <div className={styles.layout}>

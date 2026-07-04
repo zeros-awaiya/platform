@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { getAdminClient, provisionUser } from '@/utils/supabase/admin'
+import { ROLES } from '@/lib/constants'
 
 // 呼び出し元の ORG_ADMIN 検証（組織IDを返す）
 async function requireOrgAdmin(supabase) {
@@ -15,7 +16,7 @@ async function requireOrgAdmin(supabase) {
     .eq('id', currentUser.id)
     .single()
 
-  if (!profile || profile.role !== 'ORG_ADMIN') {
+  if (!profile || profile.role !== ROLES.ORG_ADMIN) {
     return { error: '権限がありません（組織管理者専用）。' }
   }
   return { orgId: profile.organization_id }
@@ -37,7 +38,7 @@ export async function inviteUser(email, name, role, departmentId, position) {
         email,
         organization_id: orgId,
         department_id: departmentId || null,
-        role: role || 'LEARNER',
+        role: role || ROLES.LEARNER,
         position,
       },
     })

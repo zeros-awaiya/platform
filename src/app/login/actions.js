@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { ROLES } from '@/lib/constants'
 
 export async function login(prevState, formData) {
   const supabase = await createClient()
@@ -49,9 +50,9 @@ export async function login(prevState, formData) {
   revalidatePath('/', 'layout')
   
   // Redirect according to user role
-  if (profile.role === 'SYSTEM_ADMIN') {
+  if (profile.role === ROLES.SYSTEM_ADMIN) {
     redirect('/admin')
-  } else if (profile.role === 'ORG_ADMIN') {
+  } else if (profile.role === ROLES.ORG_ADMIN) {
     redirect('/org')
   } else {
     redirect('/dashboard')
