@@ -52,6 +52,9 @@ class QueryBuilder {
     this.orderCol = null
     this.orderAsc = true
     this.countOptions = null
+    // insert/update/upsert/delete は実クライアント同様、await 時に実行する
+    // （旧実装は即時実行だったため .update(x).eq(...) の順序で壊れていた）
+    this.pendingOp = null
   }
 
   select(fields = '*', options = null) {
@@ -73,6 +76,21 @@ class QueryBuilder {
 
   neq(col, val) {
     this.filters.push({ type: 'neq', col, val })
+    return this
+  }
+
+  gte(col, val) {
+    this.filters.push({ type: 'gte', col, val })
+    return this
+  }
+
+  lte(col, val) {
+    this.filters.push({ type: 'lte', col, val })
+    return this
+  }
+
+  is(col, val) {
+    this.filters.push({ type: 'is', col, val })
     return this
   }
 
@@ -102,33 +120,46 @@ class QueryBuilder {
     return this
   }
 
-  async exec() {
-    const db = readDb()
-    let data = db[this.table] || []
-
-    // Apply filters
+  // 1行が現在の全フィルタに一致するか（読み書き共通）
+  matchesFilters(row) {
     for (const filter of this.filters) {
-      if (filter.type === 'eq') {
-        data = data.filter(row => row[filter.col] === filter.val)
-      } else if (filter.type === 'neq') {
-        data = data.filter(row => row[filter.col] !== filter.val)
-      } else if (filter.type === 'in') {
-        data = data.filter(row => filter.val.includes(row[filter.col]))
-      } else if (filter.type === 'or') {
+      if (filter.type === 'eq' && row[filter.col] !== filter.val) return false
+      if (filter.type === 'neq' && row[filter.col] === filter.val) return false
+      if (filter.type === 'in' && !filter.val.includes(row[filter.col])) return false
+      if (filter.type === 'gte' && !(row[filter.col] >= filter.val)) return false
+      if (filter.type === 'lte' && !(row[filter.col] <= filter.val)) return false
+      // is(null) は「値なし」扱い（undefined のカラムも null と同様にマッチ）
+      if (filter.type === 'is') {
+        if (filter.val === null ? row[filter.col] != null : row[filter.col] !== filter.val) return false
+      }
+      if (filter.type === 'or') {
         // Mock parsing for orgId OR null filters
         // e.g. "organization_id.eq.UUID,organization_id.is.null"
         const orgIdMatch = filter.filterStr.match(/organization_id\.eq\.([a-zA-Z0-9-]+)/)
         const deptIdMatch = filter.filterStr.match(/department_id\.eq\.([a-zA-Z0-9-]+)/)
-        
+
         if (orgIdMatch) {
           const orgId = orgIdMatch[1]
-          data = data.filter(row => row.organization_id === orgId || row.organization_id === null)
+          if (!(row.organization_id === orgId || row.organization_id === null)) return false
         } else if (deptIdMatch) {
           const deptId = deptIdMatch[1]
-          data = data.filter(row => row.department_id === deptId || row.department_id === null)
+          if (!(row.department_id === deptId || row.department_id === null)) return false
         }
       }
     }
+    return true
+  }
+
+  async exec() {
+    if (this.pendingOp) {
+      return this.execWrite()
+    }
+
+    const db = readDb()
+    let data = db[this.table] || []
+
+    // Apply filters
+    data = data.filter(row => this.matchesFilters(row))
 
     // Apply order
     if (this.orderCol) {
@@ -270,86 +301,130 @@ class QueryBuilder {
     return this.exec().then(onfulfilled, onrejected)
   }
 
-  async insert(insertData) {
+  // 書き込みは実クライアント同様チェーン可能（.insert().select().single() 等）。
+  // 実行は await（then）時に execWrite() で行う。
+  insert(insertData) {
+    this.pendingOp = { type: 'insert', rows: insertData }
+    return this
+  }
+
+  update(updateData) {
+    this.pendingOp = { type: 'update', data: updateData }
+    return this
+  }
+
+  upsert(upsertData, options = null) {
+    this.pendingOp = { type: 'upsert', rows: upsertData, options }
+    return this
+  }
+
+  delete() {
+    this.pendingOp = { type: 'delete' }
+    return this
+  }
+
+  async execWrite() {
+    const op = this.pendingOp
     const db = readDb()
     const tableData = db[this.table] || []
-    
-    // Check constraint validation
-    const newRows = (Array.isArray(insertData) ? insertData : [insertData]).map(row => {
-      const newRow = {
-        id: row.id || crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        ...row
+
+    if (op.type === 'insert') {
+      const inputRows = Array.isArray(op.rows) ? op.rows : [op.rows]
+
+      // lesson_progress は本番の UNIQUE(user_id, lesson_id) を模倣（コードが 23505 を握る前提のため）
+      if (this.table === 'lesson_progress') {
+        const dup = inputRows.find(row =>
+          tableData.some(r => r.user_id === row.user_id && r.lesson_id === row.lesson_id)
+        )
+        if (dup) {
+          return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint (mock)' } }
+        }
       }
-      return newRow
-    })
 
-    db[this.table] = [...tableData, ...newRows]
-    writeDb(db)
+      // id が undefined/null のまま来た場合はキーごと除去（生成IDの上書きを防ぐ）
+      const newRows = inputRows.map(row => {
+        const base = { ...row }
+        if (base.id === undefined || base.id === null) delete base.id
+        return {
+          id: crypto.randomUUID(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          ...base
+        }
+      })
 
-    // Trigger mock course progress calculation if this was inserting lesson_progress
-    if (this.table === 'lesson_progress') {
-      await mockTriggerEnrollmentProgressUpdate(db, newRows[0].user_id, newRows[0].lesson_id)
+      db[this.table] = [...tableData, ...newRows]
+      writeDb(db)
+
+      // Trigger mock course progress calculation if this was inserting lesson_progress
+      if (this.table === 'lesson_progress') {
+        for (const row of newRows) {
+          await mockTriggerEnrollmentProgressUpdate(db, row.user_id, row.lesson_id)
+        }
+      }
+
+      const data = this.isSingle ? (newRows[0] || null) : newRows
+      return { data, error: null }
     }
 
-    return { data: newRows, error: null }
-  }
-
-  async update(updateData) {
-    const db = readDb()
-    let tableData = db[this.table] || []
-    let updatedCount = 0
-
-    tableData = tableData.map(row => {
-      let matches = true
-      for (const filter of this.filters) {
-        if (filter.type === 'eq' && row[filter.col] !== filter.val) matches = false
-        if (filter.type === 'neq' && row[filter.col] === filter.val) matches = false
-      }
-      if (matches) {
-        updatedCount++
-        return { ...row, ...updateData, updated_at: new Date().toISOString() }
-      }
-      return row
-    })
-
-    db[this.table] = tableData
-    writeDb(db)
-    return { data: null, error: null, count: updatedCount }
-  }
-
-  async delete() {
-    const db = readDb()
-    let tableData = db[this.table] || []
-    
-    const matchedRows = tableData.filter(row => {
-      let matches = true
-      for (const filter of this.filters) {
-        if (filter.type === 'eq' && row[filter.col] !== filter.val) matches = false
-        if (filter.type === 'neq' && row[filter.col] === filter.val) matches = false
-      }
-      return matches
-    })
-
-    const remaining = tableData.filter(row => {
-      let matches = true
-      for (const filter of this.filters) {
-        if (filter.type === 'eq' && row[filter.col] !== filter.val) matches = false
-        if (filter.type === 'neq' && row[filter.col] === filter.val) matches = false
-      }
-      return !matches
-    })
-
-    db[this.table] = remaining
-    writeDb(db)
-
-    // Trigger mock course progress calculation if this was deleting lesson_progress
-    if (this.table === 'lesson_progress' && matchedRows.length > 0) {
-      await mockTriggerEnrollmentProgressUpdate(db, matchedRows[0].user_id, matchedRows[0].lesson_id)
+    if (op.type === 'update') {
+      let updatedCount = 0
+      db[this.table] = tableData.map(row => {
+        if (this.matchesFilters(row)) {
+          updatedCount++
+          return { ...row, ...op.data, updated_at: new Date().toISOString() }
+        }
+        return row
+      })
+      writeDb(db)
+      return { data: null, error: null, count: updatedCount }
     }
 
-    return { data: null, error: null }
+    if (op.type === 'upsert') {
+      const inputRows = Array.isArray(op.rows) ? op.rows : [op.rows]
+      const conflictCols = op.options?.onConflict
+        ? op.options.onConflict.split(',').map(s => s.trim())
+        : ['id']
+
+      let rows = [...tableData]
+      for (const row of inputRows) {
+        const idx = rows.findIndex(existing =>
+          conflictCols.every(col => row[col] !== undefined && existing[col] === row[col])
+        )
+        if (idx !== -1) {
+          rows[idx] = { ...rows[idx], ...row, updated_at: new Date().toISOString() }
+        } else {
+          const base = { ...row }
+          if (base.id === undefined || base.id === null) delete base.id
+          rows.push({
+            id: crypto.randomUUID(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            ...base
+          })
+        }
+      }
+      db[this.table] = rows
+      writeDb(db)
+      return { data: null, error: null }
+    }
+
+    if (op.type === 'delete') {
+      const matchedRows = tableData.filter(row => this.matchesFilters(row))
+      db[this.table] = tableData.filter(row => !this.matchesFilters(row))
+      writeDb(db)
+
+      // Trigger mock course progress calculation if this was deleting lesson_progress
+      if (this.table === 'lesson_progress') {
+        for (const row of matchedRows) {
+          await mockTriggerEnrollmentProgressUpdate(db, row.user_id, row.lesson_id)
+        }
+      }
+
+      return { data: null, error: null }
+    }
+
+    return { data: null, error: { message: `unsupported mock operation: ${op.type}` } }
   }
 }
 
