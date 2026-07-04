@@ -421,11 +421,49 @@ class QueryBuilder {
         }
       }
 
+      // lessons 削除時: FKカスケード相当（進捗・設問の除去）＋
+      // trg_recalc_enrollments_after_lesson_delete 相当（該当コースの進捗率再計算）
+      if (this.table === 'lessons' && matchedRows.length > 0) {
+        const deletedIds = matchedRows.map(r => r.id)
+        db.lesson_progress = (db.lesson_progress || []).filter(lp => !deletedIds.includes(lp.lesson_id))
+        db.quiz_questions = (db.quiz_questions || []).filter(q => !deletedIds.includes(q.lesson_id))
+        writeDb(db)
+
+        const courseIds = [...new Set(matchedRows.map(r => r.course_id))]
+        for (const courseId of courseIds) {
+          mockRecalcCourseEnrollments(db, courseId)
+        }
+      }
+
       return { data: null, error: null }
     }
 
     return { data: null, error: { message: `unsupported mock operation: ${op.type}` } }
   }
+}
+
+// trg_recalc_enrollments_after_lesson_delete 相当:
+// レッスン削除後、そのコースの全受講者の enrollments を現構成で再計算する。
+// %は本番トリガーと同じ整数除算（切り捨て）。completed_at は降格時も保持。
+function mockRecalcCourseEnrollments(db, courseId) {
+  const courseLessonIds = (db.lessons || []).filter(l => l.course_id === courseId).map(l => l.id)
+  const total = courseLessonIds.length
+
+  db.enrollments = (db.enrollments || []).map(e => {
+    if (e.course_id !== courseId) return e
+    const done = (db.lesson_progress || []).filter(
+      lp => lp.user_id === e.user_id && courseLessonIds.includes(lp.lesson_id)
+    ).length
+    const pct = total > 0 ? Math.floor((done * 100) / total) : 0
+    const status = pct === 100 ? 'completed' : pct > 0 ? 'in_progress' : 'not_started'
+    return {
+      ...e,
+      progress_percent: pct,
+      status,
+      completed_at: pct === 100 && e.status !== 'completed' ? new Date().toISOString() : e.completed_at,
+    }
+  })
+  writeDb(db)
 }
 
 // Mock Postgres trigger function for course progress calculation
