@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { getAdminClient } from '@/utils/supabase/admin'
 import LearnerLessonClientPage from './LearnerLessonClientPage'
 
 export const dynamic = 'force-dynamic'
@@ -33,12 +34,18 @@ export default async function LearnerLessonPage({ params }) {
         lesson = sortedLessons.find(l => l.id === lessonId)
 
         if (lesson && lesson.content_type === 'quiz') {
-          const { data: quizData } = await supabase
+          // 設問の表示は service-role で取得する。正答列（correct_option）は含めない。
+          // 受講者は courses の RLS を通過済み（courseData が取れている）ため、
+          // その配下レッスンの設問を表示する権限は確認済み。
+          // ※ correct_option を受講者トークンで読めないよう RLS を絞ったため、
+          //   受講者セッションでは quiz_questions を SELECT できない。表示は下記経由。
+          const admin = getAdminClient(supabase)
+          const { data: quizData } = await admin
             .from('quiz_questions')
             .select('id, question, option_a, option_b, option_c, option_d, sort_order')
             .eq('lesson_id', lessonId)
             .order('sort_order', { ascending: true })
-          
+
           lesson.quiz_questions = quizData || []
         }
 
