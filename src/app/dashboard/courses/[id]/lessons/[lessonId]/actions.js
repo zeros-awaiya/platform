@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { getAdminClient } from '@/utils/supabase/admin'
 
 export async function toggleLessonProgress(courseId, lessonId, isCompleted) {
   const supabase = await createClient()
@@ -50,8 +51,23 @@ export async function submitQuizAnswers(courseId, lessonId, userAnswers) {
   if (!user) return { error: '認証セッションがありません。' }
 
   try {
-    // 1. Fetch correct answers from DB
-    const { data: questions, error } = await supabase
+    // 0. アクセス権チェック（受講者セッション=RLSで、このレッスンが見えるか確認）。
+    //    正答は service-role で読むため RLS をバイパスする。ここで明示的に権限を検証し、
+    //    自組織外のレッスンを採点対象にできないようにする。
+    const { data: lessonRow, error: lessonErr } = await supabase
+      .from('lessons')
+      .select('id')
+      .eq('id', lessonId)
+      .maybeSingle()
+
+    if (lessonErr || !lessonRow) {
+      return { error: 'このレッスンにアクセスする権限がありません。' }
+    }
+
+    // 1. Fetch correct answers via service-role（正答はサーバー外に出さない）。
+    //    受講者トークンでは correct_option を読めない（RLS で遮断済み）。
+    const admin = getAdminClient(supabase)
+    const { data: questions, error } = await admin
       .from('quiz_questions')
       .select('id, correct_option')
       .eq('lesson_id', lessonId)
