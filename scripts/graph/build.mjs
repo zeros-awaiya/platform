@@ -18,7 +18,36 @@ const { values } = parseArgs({ options: { root: { type: "string" } } });
 const rootDir = resolveRoot(values.root);
 const { stagingDir, currentDir } = graphPaths(rootDir);
 
+// Dropbox等の同期プロセスがファイルを掴んでいると削除/リネームが一時的に失敗するため、
+// ロック起因のエラーコードに限り指数バックオフで再試行する
+const LOCK_ERROR_CODES = new Set(["EPERM", "EBUSY", "EACCES", "ENOTEMPTY"]);
+
+async function withRetry(label, action, attempts = 5) {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return action();
+    } catch (error) {
+      if (!LOCK_ERROR_CODES.has(error.code) || attempt >= attempts) {
+        throw error;
+      }
+      const delayMs = 500 * 2 ** (attempt - 1);
+      console.log(`${label} が ${error.code} で失敗。${delayMs}ms 後に再試行（${attempt}/${attempts - 1}）`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
 console.log(`走査対象: ${rootDir}`);
+
+// 前回失敗時の中間生成物が残っていれば片付ける（stagingは再生成可能な作業領域）
+if (fs.existsSync(stagingDir)) {
+  for (const leftover of fs.readdirSync(stagingDir)) {
+    await withRetry(`staging残置物 ${leftover} の削除`, () =>
+      fs.rmSync(path.join(stagingDir, leftover), { recursive: true, force: true })
+    );
+    console.log(`前回の中間生成物を削除: staging/${leftover}`);
+  }
+}
 
 const graph = buildGraph(rootDir);
 applySemantics(graph, rootDir);
@@ -59,8 +88,10 @@ if (!validation.ok) {
   process.exit(1);
 }
 
-fs.rmSync(currentDir, { recursive: true, force: true });
-fs.renameSync(runDir, currentDir);
+await withRetry("current の削除", () =>
+  fs.rmSync(currentDir, { recursive: true, force: true })
+);
+await withRetry("current への昇格", () => fs.renameSync(runDir, currentDir));
 if (fs.existsSync(stagingDir) && fs.readdirSync(stagingDir).length === 0) {
   fs.rmdirSync(stagingDir);
 }
