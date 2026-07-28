@@ -111,6 +111,8 @@ classification: public | internal | owner_only
 
 ### Phase 2: ハブへの展開（ZEROSのローカル作業が必要）
 
+> ツール（`graph:init` / `run-all` の `--root` 対応）とテンプレートは実装済み。ローカル手順は `docs/ai-org-knowledge-graph-phase2-guide.md` を参照。
+
 1. ハブ直下に `notes/ decisions/ tasks/ outputs/ references/` を整備（大分類だけでよい）
 2. ローカルで `node scripts/graph/build.mjs --root <ハブのパス>` を実行し、情報地図を得る
 3. 以後、AI作業の節目に `decisions/` へ判断記録（決定・根拠・却下案・担当）を書く運用を開始 — **チャット履歴の代替はこの運用**

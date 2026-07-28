@@ -10,7 +10,8 @@
     "graph:build": "node scripts/graph/build.mjs",
     "graph:validate": "node scripts/graph/validate.mjs",
     "graph:render": "node scripts/graph/render.mjs",
-    "graph": "node scripts/graph/build.mjs && node scripts/graph/validate.mjs && node scripts/graph/render.mjs"
+    "graph:init": "node scripts/graph/init-hub.mjs",
+    "graph": "node scripts/graph/run-all.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

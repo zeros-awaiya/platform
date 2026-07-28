@@ -60,3 +60,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - `platform-deploy`（ハブ `.claude/skills/`）… コース・メディアのDB/Storage投入手順の地図
   - `zeros-quiz-rollout`（`~/.claude/skills/`）… クイズ作成・反映の正本
 - 設計ドキュメント: `docs/training-framework-and-skillmap.md`（研修体系・スキルマップ）、`docs/integration-design-*.md`（外部連携設計）。
+
+## 情報循環グラフ（AI組織の記憶）
+
+- 生成: `npm run graph`（本リポジトリ対象）/ `npm run graph -- --root "<ハブのパス>"`（ハブ対象）。ハブ初期化は `npm run graph:init -- --root <パス>`（冪等・上書きなし）。生成物は `<対象ルート>/graph/current/`。
+- 運用: AI作業の節目（採用・却下・方針決定）には判断記録をハブの `decisions/` に書く（`_TEMPLATE.md` を複製）。新規成果物には来歴フロントマター（`outputs/_TEMPLATE.md`）を付け、更新は上書きせず `supersedes` で旧版を指す。チャットで決まったことをチャットに置いたままにしない。
+- 設計・手順: `docs/ai-org-knowledge-graph-plan.md`（計画と実現可能性判断）/ `docs/ai-org-knowledge-graph-phase2-guide.md`（ハブ展開のローカル手順）。
