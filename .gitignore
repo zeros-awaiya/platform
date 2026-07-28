@@ -42,3 +42,6 @@ next-env.d.ts
 
 # 情報循環グラフの生成物（scripts/graph/ で再生成可能）
 /graph/
+
+# 日次実行（タスクスケジューラ）の実行ログ
+/graph-run.log
