@@ -120,6 +120,8 @@ classification: public | internal | owner_only
 
 ### Phase 3: 意味エッジと質問機能
 
+> 実装済み。意味エッジは `scripts/graph/semantics.mjs`（許可リスト: `decisions/ tasks/ outputs/` の `.md` 先頭8KBのフロントマターのみ、本文推測なし）。質問は `npm run graph:query -- <質問>`（awaiting-approval / unsupported-decisions / unreviewed-artifacts / impact / stale-tasks / diff）、スナップショットは `npm run graph:snapshot`。
+
 1. フロントマター（`sources` / `supersedes` / `reviewers`）から意味エッジを生成
 2. 質問機能5種（記事29節）: 承認待ち / 根拠なし判断 / 未確認成果物 / 変更の影響先 / 長期停滞タスク — いずれも `current/knowledge-graph.json` への純JSONクエリで実装可能
 3. 日次スナップショットと時間差分（`validFrom`/`validTo`）

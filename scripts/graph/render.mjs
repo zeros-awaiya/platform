@@ -98,7 +98,8 @@ function layoutSvg(graph) {
       if (!from || !to) {
         return "";
       }
-      return `<line x1="${from.x.toFixed(1)}" y1="${from.y.toFixed(1)}" x2="${to.x.toFixed(1)}" y2="${to.y.toFixed(1)}" stroke="#cbd5e1" stroke-width="0.5"/>`;
+      const semantic = edge.type !== "BELONGS_TO";
+      return `<line x1="${from.x.toFixed(1)}" y1="${from.y.toFixed(1)}" x2="${to.x.toFixed(1)}" y2="${to.y.toFixed(1)}" stroke="${semantic ? "#f59e0b" : "#cbd5e1"}" stroke-width="${semantic ? 1.4 : 0.5}"><title>${escapeHtml(edge.type)}</title></line>`;
     })
     .join("\n");
 

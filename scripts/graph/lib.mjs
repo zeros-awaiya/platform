@@ -235,6 +235,14 @@ export function validateGraph(graph, rootDir) {
   if (isolatedNodes.length > 0) {
     warnings.push(`孤立ノード: ${isolatedNodes.length}件`);
   }
+  const unresolvedReferences = graph.quality?.unresolvedReferences ?? [];
+  if (unresolvedReferences.length > 0) {
+    warnings.push(`未解決の参照: ${unresolvedReferences.length}件`);
+  }
+  const duplicateEntityIds = graph.quality?.duplicateEntityIds ?? [];
+  if (duplicateEntityIds.length > 0) {
+    warnings.push(`重複エンティティID: ${duplicateEntityIds.length}件`);
+  }
 
   return {
     generatedAt: new Date().toISOString(),
@@ -244,6 +252,8 @@ export function validateGraph(graph, rootDir) {
     details: {
       brokenEdges,
       duplicateNodeIds,
+      unresolvedReferences,
+      duplicateEntityIds,
       brokenPaths: brokenPaths.map((node) => node.attributes.relativePath),
       isolatedNodes: isolatedNodes.map((node) => ({
         id: node.id,

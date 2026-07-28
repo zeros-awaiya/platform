@@ -11,6 +11,8 @@
     "graph:validate": "node scripts/graph/validate.mjs",
     "graph:render": "node scripts/graph/render.mjs",
     "graph:init": "node scripts/graph/init-hub.mjs",
+    "graph:query": "node scripts/graph/query.mjs",
+    "graph:snapshot": "node scripts/graph/snapshot.mjs",
     "graph": "node scripts/graph/run-all.mjs"
   },
   "dependencies": {

@@ -12,6 +12,7 @@ import {
   validateGraph,
   writeJson,
 } from "./lib.mjs";
+import { applySemantics } from "./semantics.mjs";
 
 const { values } = parseArgs({ options: { root: { type: "string" } } });
 const rootDir = resolveRoot(values.root);
@@ -20,6 +21,7 @@ const { stagingDir, currentDir } = graphPaths(rootDir);
 console.log(`走査対象: ${rootDir}`);
 
 const graph = buildGraph(rootDir);
+applySemantics(graph, rootDir);
 const validation = validateGraph(graph, rootDir);
 
 const runId = `graph_${graph.generatedAt.replaceAll(":", "-").replace(/\..*$/, "")}`;

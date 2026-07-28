@@ -40,6 +40,22 @@ npm run graph -- --root "<ハブのパス>"
 
 ⚠️ `graph/` はハブ側に生成されるため Dropbox 同期に載る。問題があれば Dropbox の選択同期で `graph/` を除外する。
 
+## 2.5 質問機能（Phase 3 実装済み）
+
+グラフ生成後、次の定型質問に答えられる:
+
+```bash
+npm run graph:query -- awaiting-approval --root "<ハブのパス>"      # 承認待ち（誰の確認を何日待っているか）
+npm run graph:query -- unsupported-decisions --root "<ハブのパス>"  # 根拠のない判断
+npm run graph:query -- unreviewed-artifacts --root "<ハブのパス>"   # 確認記録のない成果物
+npm run graph:query -- impact --target references/xx.md --root "<ハブのパス>"  # 変更の影響先
+npm run graph:query -- stale-tasks --days 14 --root "<ハブのパス>"  # 停滞タスク
+npm run graph:snapshot -- --root "<ハブのパス>"                     # 日次スナップショット
+npm run graph:query -- diff --root "<ハブのパス>"                   # 前回スナップショットとの差分
+```
+
+フロントマターの `sources` / `supersedes` / `taskId` から意味エッジ（根拠・生成元・置換）が自動生成される。解決できない参照は検証レポートに「未解決の参照」として出るので、IDの書き間違いに気づける。
+
 ## 3. 運用ルール（ここが本体）
 
 ツールより重要。この2つが回らないとグラフは記憶にならない。
