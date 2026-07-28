@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 情報循環グラフの生成物（scripts/graph/ で再生成可能）
+/graph/

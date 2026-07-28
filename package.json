@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "graph:build": "node scripts/graph/build.mjs",
+    "graph:validate": "node scripts/graph/validate.mjs",
+    "graph:render": "node scripts/graph/render.mjs",
+    "graph": "node scripts/graph/build.mjs && node scripts/graph/validate.mjs && node scripts/graph/render.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
