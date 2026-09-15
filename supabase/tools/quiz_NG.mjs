@@ -13,9 +13,10 @@
 //   2) 本番反映(MODE=apply, デフォルト)はBOSS承認後に、SERVICE_ROLE_KEYを都度受領して実行する。
 //
 // 使い方:
+//   ⚠️ 鍵をコマンド文字列に直接書かない（許可ルールに平文で保存される）。AGENTS.md「本番DBの操作ルール」2 を参照。
 //   MODE=list COURSE_ID=b0e90000-0000-4000-8000-000000000000 \
-//     SUPABASE_URL=https://wrunobvmzghzwwjtlqry.supabase.co SERVICE_ROLE_KEY="<受領>" node supabase/tools/quiz_NG.mjs
-//   SUPABASE_URL=https://wrunobvmzghzwwjtlqry.supabase.co SERVICE_ROLE_KEY="<受領>" node supabase/tools/quiz_NG.mjs
+//     SUPABASE_URL=https://wrunobvmzghzwwjtlqry.supabase.co SERVICE_ROLE_KEY="$(cat \"$SBKEY_FILE\")" node supabase/tools/quiz_NG.mjs
+//   SUPABASE_URL=https://wrunobvmzghzwwjtlqry.supabase.co SERVICE_ROLE_KEY="$(cat \"$SBKEY_FILE\")" node supabase/tools/quiz_NG.mjs
 import { createClient } from '@supabase/supabase-js';
 import { writeFileSync } from 'node:fs';
 

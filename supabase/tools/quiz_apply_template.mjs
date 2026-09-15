@@ -2,11 +2,13 @@
 // 使い方（詳細は supabase/QUIZ_ROLLOUT_PLAN.md）:
 //   1) このファイルをコース別にコピー（例 quiz_CB.mjs）。
 //   2) まず list モードで対象コースのレッスン id/sort を確認（動画が存在するかも要確認）:
-//        MODE=list COURSE_ID=<uuid> SUPABASE_URL=... SERVICE_ROLE_KEY=... node <file>
+//        MODE=list COURSE_ID=<uuid> SUPABASE_URL=... SERVICE_ROLE_KEY="$(cat \"$SBKEY_FILE\")" node <file>
 //   3) 下の CONFIG を埋める（動画id→クイズid、総合クイズid、各設問）。本文準拠＋正解キー照合。
 //   4) apply モードで本番反映＋再現SQL生成:
-//        SUPABASE_URL=... SERVICE_ROLE_KEY=... node <file>
-// 反映方式: psql/接続文字列なしのため service_role + supabase-js(REST)。キーは毎回環境変数で渡す。
+//        SUPABASE_URL=... SERVICE_ROLE_KEY="$(cat \"$SBKEY_FILE\")" node <file>
+// 反映方式: psql/接続文字列なしのため service_role + supabase-js(REST)。
+// ⚠️ 鍵は毎回受領し、**一時ファイル経由**で渡す。コマンド文字列に直接書くと Claude Code の
+//    許可ルール(permissions.allow)に平文で保存される。詳細は AGENTS.md「本番DBの操作ルール」2。
 import { createClient } from '@supabase/supabase-js';
 import { writeFileSync } from 'node:fs';
 
