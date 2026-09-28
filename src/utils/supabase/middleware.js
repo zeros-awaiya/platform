@@ -57,8 +57,9 @@ export async function updateSession(request) {
   const isApi = url.pathname.startsWith('/api')
   const isStatic = url.pathname.includes('.') || url.pathname.startsWith('/_next')
   const isHome = url.pathname === '/'
+  const isPublicShare = url.pathname.startsWith('/c/') // 修了シェアの公開ページ
 
-  if (!user && !isAuthPage && !isApi && !isStatic && !isHome) {
+  if (!user && !isAuthPage && !isApi && !isStatic && !isHome && !isPublicShare) {
     // Redirect unauthenticated user to login page
     const loginUrl = new URL('/login', request.url)
     return NextResponse.redirect(loginUrl)

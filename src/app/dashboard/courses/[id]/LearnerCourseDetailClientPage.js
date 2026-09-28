@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import styles from '../../dashboard.module.css'
+import ShareCompletion from '@/components/ShareCompletion'
 
 export default function LearnerCourseDetailClientPage({ course, enrollment, completedLessonIds }) {
   const progressPercent = enrollment ? enrollment.progress_percent : 0
@@ -53,6 +54,9 @@ export default function LearnerCourseDetailClientPage({ course, enrollment, comp
           </span>
         </div>
       </div>
+
+      {/* 共有は全組織共通コースのみ。組織独自コースの名前は外に出さない */}
+      {isCompleted && !course.organization_id && <ShareCompletion course={course} />}
 
       {/* Lesson List Section */}
       <div className={styles.card}>
