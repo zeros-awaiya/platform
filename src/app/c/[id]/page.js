@@ -27,11 +27,14 @@ export async function generateMetadata({ params }) {
   if (!course) return {}
   const title = `「${course.title}」を修了しました | あわい屋ZEROS`
   const description = course.description || 'あわい屋ZEROS 学習プラットフォームのコースです。'
+  // 画像は全コース共通の静的PNG。動的セグメント内の opengraph-image.png は Vercel のビルドで
+  // "failed to find source route" になるため public/ に置いて明示指定する
+  const images = [{ url: '/og-course-complete.png', width: 1200, height: 630, alt: 'コース修了 ― あわい屋ZEROS 学習プラットフォーム' }]
   return {
     title,
     description,
-    openGraph: { title, description, type: 'website', siteName: 'あわい屋ZEROS 学習プラットフォーム' },
-    twitter: { card: 'summary_large_image', title, description },
+    openGraph: { title, description, images, type: 'website', siteName: 'あわい屋ZEROS 学習プラットフォーム' },
+    twitter: { card: 'summary_large_image', title, description, images },
   }
 }
 
