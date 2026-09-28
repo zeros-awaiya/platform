@@ -1,0 +1,75 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 55%), #09090b;
+  color: #fafafa;
+}
+
+.inner {
+  width: 100%;
+  max-width: 640px;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  color: #818cf8;
+}
+
+.lead {
+  font-size: 0.9rem;
+  color: #a1a1aa;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2rem;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: #818cf8;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 999px;
+  padding: 0.2rem 0.75rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.35;
+  margin-top: 0.75rem;
+}
+
+.desc {
+  color: #a1a1aa;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  margin-top: 1rem;
+}
+
+.about {
+  color: #a1a1aa;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  margin: 2rem 0 1.25rem;
+}
+
+.cta {
+  display: inline-block;
+  padding: 0.7rem 1.5rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
