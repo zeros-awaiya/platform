@@ -13,6 +13,7 @@
     "graph:init": "node scripts/graph/init-hub.mjs",
     "graph:query": "node scripts/graph/query.mjs",
     "graph:snapshot": "node scripts/graph/snapshot.mjs",
+    "graph:test": "node --test scripts/graph/build.test.mjs",
     "graph": "node scripts/graph/run-all.mjs"
   },
   "dependencies": {

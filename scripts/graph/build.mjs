@@ -93,7 +93,7 @@ await withRetry("current の削除", () =>
 );
 await withRetry("current への昇格", () => fs.renameSync(runDir, currentDir));
 if (fs.existsSync(stagingDir) && fs.readdirSync(stagingDir).length === 0) {
-  fs.rmdirSync(stagingDir);
+  await withRetry("空stagingの削除", () => fs.rmdirSync(stagingDir));
 }
 
 console.log(`生成完了: ノード ${graph.counts.nodes}件 / エッジ ${graph.counts.edges}件`);
