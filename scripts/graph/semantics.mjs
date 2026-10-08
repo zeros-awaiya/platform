@@ -145,18 +145,21 @@ export function applySemantics(graph, rootDir) {
     if (!fm) {
       continue;
     }
-    if (String(fm.operational).toLowerCase() === "false") {
-      node.attributes.operational = false;
-      continue;
-    }
     const picked = {};
     for (const key of KEEP_KEYS) {
       if (fm[key] !== undefined && fm[key] !== null) {
         picked[key] = fm[key];
       }
     }
-    node.attributes.frontmatter = picked;
-    withFrontmatter.push(node);
+    // 写し（operational: false）は所見（承認待ち・根拠なし等）と自分発の参照からは外すが、
+    // 自分のIDは解決表に載せる。手書きのノートが写しのIDを sources 等で指したとき「未解決参照」にしないため（独立再レビュー 6・2026-10-08）
+    const copy = String(fm.operational).toLowerCase() === "false";
+    if (copy) {
+      node.attributes.operational = false;
+    } else {
+      node.attributes.frontmatter = picked;
+      withFrontmatter.push(node);
+    }
 
     const selfKey = SELF_ID_KEYS[node.type];
     const selfId = selfKey ? picked[selfKey] : undefined;

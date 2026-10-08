@@ -46,3 +46,21 @@ test("否定対照: 印の無い写し（operational を書き忘れた）は従
     assert.match(h.q("unsupported-decisions"), /根拠のない判断: 1件/);
   } finally { h.done(); }
 });
+
+test("写しのIDも解決の対象: 手書きのノートが写しのIDを sources で指しても未解決参照にならない（独立再レビュー 6）", () => {
+  const cite = "---\ndecisionId: decision_hand2\nstatus: approved\nsources: [decision_20261001_e1]\n---\n\n# 写しを根拠にした手書き\n";
+  const h = hub({ "decisions/decision_20261001_e1.md": copy("decision_20261001_e1"), "decisions/hand2.md": cite });
+  try {
+    const graph = JSON.parse(fs.readFileSync(path.join(h.root, "graph", "current", "knowledge-graph.json"), "utf8"));
+    assert.deepEqual(graph.quality.unresolvedReferences, [], "★ 写しのIDを指した参照が未解決になっている");
+    assert.ok(graph.edges.some((e) => e.type === "SUPPORTED_BY"), "写しへの根拠のエッジが張られていない");
+    // 写しは所見に出ないまま（承認待ち 0件）
+    assert.doesNotMatch(h.q("awaiting-approval"), /decision_20261001/);
+    // 否定対照: 存在しないIDを指せば従来どおり未解決に出る（検査が空振りしていない）
+    const h2 = hub({ "decisions/hand2.md": cite });
+    try {
+      const g2 = JSON.parse(fs.readFileSync(path.join(h2.root, "graph", "current", "knowledge-graph.json"), "utf8"));
+      assert.equal(g2.quality.unresolvedReferences.length, 1);
+    } finally { h2.done(); }
+  } finally { h.done(); }
+});
