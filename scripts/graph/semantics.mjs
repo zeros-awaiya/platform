@@ -99,6 +99,14 @@ export function isOperationalFile(relativePath) {
   return !base.startsWith("_") && base.toLowerCase() !== "readme.md";
 }
 
+// 機械的な写しも運用対象外（2026-10-08）。正本が別の場所にあるノート（例: zeros-virtual-office の daily-records.js が
+// events.jsonl の1行から作る decisions/decision_*.md）は frontmatter に `operational: false` を持つ。
+// テンプレート・README と同じ扱い＝意味エッジ・承認待ち・根拠のない判断などの所見の対象にしない（手書きのノートは従来どおり）。
+export function isOperationalNode(node) {
+  const relativePath = node.attributes?.relativePath;
+  return Boolean(relativePath) && isOperationalFile(relativePath) && node.attributes?.operational !== false;
+}
+
 function isSemanticSource(node) {
   const relativePath = node.attributes?.relativePath;
   if (!relativePath || !relativePath.endsWith(".md")) {
@@ -135,6 +143,10 @@ export function applySemantics(graph, rootDir) {
     const text = readLimitedText(path.join(rootDir, node.attributes.relativePath));
     const fm = parseFrontmatter(text);
     if (!fm) {
+      continue;
+    }
+    if (String(fm.operational).toLowerCase() === "false") {
+      node.attributes.operational = false;
       continue;
     }
     const picked = {};

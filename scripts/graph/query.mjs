@@ -10,7 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { graphPaths, readJson, resolveRoot } from "./lib.mjs";
-import { isOperationalFile } from "./semantics.mjs";
+import { isOperationalNode } from "./semantics.mjs";
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -43,8 +43,7 @@ function operationalNodes(graph, type) {
   return graph.nodes.filter(
     (node) =>
       node.type === type &&
-      node.attributes?.relativePath &&
-      isOperationalFile(node.attributes.relativePath)
+      isOperationalNode(node)
   );
 }
 
