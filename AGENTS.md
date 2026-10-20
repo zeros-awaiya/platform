@@ -50,17 +50,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
    rm -f "$SBKEY_FILE"
    ```
 3. `SERVICE_ROLE_KEY` は毎回ユーザーから受け取る。**保存・コミット・メモリ記録は禁止**。使用後は鍵の一時ファイル・`.sbkey` 等のキャッシュを削除。
-   **★なぜコマンド文字列に載せてはいけないか（2026-09-15 の実測）**:
-   Claude Code の権限モデルは**コマンド文字列そのものを同一性の単位にする**ため、
-   `SERVICE_ROLE_KEY="eyJ..." node x.mjs` を一度許可すると、**その文字列が丸ごと
-   `settings.local.json` の `permissions.allow` に平文で保存される**（＝許可ルールが鍵になる）。
-   実際に 4 件の allow エントリに service ロールキーが平文で残り、Dropbox 同期・
-   週次バックアップ・会話ログへ複製されていた。この運用ルールは **git に対しては完璧に機能した**
-   （45リポジトリ全履歴で0件）が、許可ルール経由の経路だけが塞がっていなかった。
-   上の `$(cat ...)` 形なら、実行されるコマンド文字列に鍵が一度も現れないので、
-   許可ルールに保存されても無害になる（＝構造的に漏れない）。
-   入口には PreToolUse フック（`~/.claude/hooks/guard-secret-in-command.js`）と
-   `permissions.deny` の `Bash(*eyJ*)` が入っており、鍵を載せたコマンドは**実行前に拒否される**。
+   鍵を載せたコマンドは PreToolUse フックと `permissions.deny` の `Bash(*eyJ*)` で実行前に拒否される（理由と経緯: `docs/secret-handling-20260915.md`）。
 4. 汎用反映ツール: `supabase/tools/quiz_apply_template.mjs`（`MODE=list` で実測 → CONFIG記入 → apply）。
 5. seed は `supabase/seed_*.sql`（固定UUID・冪等）。**正本=`seed_ai_quiz_per_video.sql`、旧 `seed_ai_quiz.sql` は廃止**（流すと現行設計を破壊）。再現SQLは `supabase/quiz_pv/<courseId8>.sql`。
 6. クイズ展開の残作業インベントリ: `supabase/QUIZ_ROLLOUT_PLAN.md`（着手前に必ず読む）。
