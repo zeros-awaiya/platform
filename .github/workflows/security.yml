@@ -1,0 +1,78 @@
+name: Security
+
+# gitleaks: 新しく入るコミットだけを検査し、秘密が見つかれば失敗させる（止める）。
+#   全履歴ではなく差分だけを見る（過去分は別途棚卸しし、新しい混入を確実に止めることを優先）。
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GITLEAKS_VERSION: 8.30.1
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install gitleaks (checksum verified)
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/gitleaks"
+          mkdir -p "$dir"
+          tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          curl -fsSL -o "$dir/$tarball" "$base/$tarball"
+          curl -fsSL -o "$dir/checksums.txt" "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          expected="$(awk -v f="$tarball" '$2==f {print $1}' "$dir/checksums.txt")"
+          actual="$(sha256sum "$dir/$tarball" | awk '{print $1}')"
+          if [ -z "$expected" ] || [ "$expected" != "$actual" ]; then
+            echo "::error::gitleaks checksum mismatch"
+            exit 1
+          fi
+          tar -xzf "$dir/$tarball" -C "$dir" gitleaks
+          echo "$dir" >> "$GITHUB_PATH"
+
+      - name: Determine scan range
+        id: range
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.event.after }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          is_commit() { [[ "$1" =~ ^[0-9a-f]{40}$ ]] && git cat-file -e "$1^{commit}" 2>/dev/null; }
+          case "$EVENT_NAME" in
+            pull_request) base="$PR_BASE_SHA"; head="$PR_HEAD_SHA" ;;
+            push)         base="$PUSH_BEFORE"; head="$PUSH_AFTER" ;;
+            *)            head="$(git rev-parse HEAD)"
+                          base="$(git merge-base "origin/$DEFAULT_BRANCH" "$head" 2>/dev/null || true)" ;;
+          esac
+          if ! is_commit "$head"; then
+            echo "::error::head commit not found: $head"
+            exit 1
+          fi
+          if is_commit "$base" && [ "$base" != "$head" ]; then
+            log_opts="$base..$head"
+          else
+            log_opts="-1 $head"
+          fi
+          echo "scan range: $log_opts"
+          echo "log_opts=$log_opts" >> "$GITHUB_OUTPUT"
+
+      - name: Run gitleaks
+        env:
+          LOG_OPTS: ${{ steps.range.outputs.log_opts }}
+        run: gitleaks git --redact --no-banner --exit-code 1 --log-opts="$LOG_OPTS" .
